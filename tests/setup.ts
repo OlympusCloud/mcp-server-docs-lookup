@@ -18,6 +18,22 @@ jest.mock('isomorphic-git');
 jest.mock('@xenova/transformers');
 jest.mock('@qdrant/js-client-rest');
 
+// Mock logger to reduce console spam
+jest.mock('../src/utils/logger', () => ({
+  default: {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+    log: jest.fn(),
+  },
+  error: jest.fn(),
+  warn: jest.fn(),
+  info: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+}));
+
 // Global test utilities
 global.testUtils = {
   async delay(ms: number): Promise<void> {
