@@ -148,8 +148,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Download test results
-      uses: actions/download-artifact@v3
+    # Skip artifact download since integration/e2e tests are disabled
+    # - name: Download test results
+    #   uses: actions/download-artifact@v3
     
     - name: Generate test report
       run: |
