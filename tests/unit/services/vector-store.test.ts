@@ -177,6 +177,7 @@ describe('VectorStore', () => {
       expect(mockQdrantClient.search).toHaveBeenCalledWith('test-collection', {
         vector: embedding,
         limit: 10,
+        score_threshold: 0.5,
         with_payload: true,
       });
       expect(results).toHaveLength(1);
@@ -185,7 +186,7 @@ describe('VectorStore', () => {
 
     it('should apply score threshold filter', async () => {
       const embedding = new Array(384).fill(0.1);
-      const mockResults = [
+      const allResults = [
         { 
           id: 'chunk-1', 
           version: 0,
@@ -227,7 +228,12 @@ describe('VectorStore', () => {
         },
       ];
 
-      mockQdrantClient.search.mockResolvedValue(mockResults);
+      // Mock Qdrant's server-side score threshold filtering
+      mockQdrantClient.search.mockImplementation((collectionName, params) => {
+        const scoreThreshold = params.score_threshold || 0.5;
+        const filteredResults = allResults.filter(result => result.score >= scoreThreshold);
+        return Promise.resolve(filteredResults);
+      });
 
       const results = await vectorStore.search(embedding, {
         limit: 10,
@@ -248,7 +254,7 @@ describe('VectorStore', () => {
         filter: {
           must: [
             {
-              key: 'metadata.documentId',
+              key: 'documentId',
               match: { value: 'doc-1' },
             },
           ],
