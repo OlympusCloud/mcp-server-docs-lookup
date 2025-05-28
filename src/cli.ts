@@ -651,19 +651,28 @@ Or if installed globally:
       case 'vscode':
       case 'vs-code':
         console.log('\n📋 GitHub Copilot (VS Code) Integration\n');
+        console.log('Prerequisites:');
+        console.log('1. Install the package globally: npm install -g @olympuscloud/mcp-docs-server');
+        console.log('2. Initialize configuration: olympus-mcp init olympus-cloud');
+        console.log('3. Sync repositories: olympus-mcp sync\n');
+        
+        console.log('VS Code Setup:');
         console.log('1. Install the Copilot Language Model API extension in VS Code');
-        console.log('2. Open VS Code settings (Cmd+, or Ctrl+,)');
-        console.log('3. Search for "GitHub Copilot > Language Models"');
-        console.log('4. Add to your settings.json:\n');
+        console.log('2. Open VS Code settings.json (Cmd+Shift+P > "Preferences: Open Settings (JSON)")');
+        console.log('3. Add the following configuration:\n');
         console.log(`{
   "github.copilot.chat.models": {
     "olympus-docs": {
       "type": "mcp",
       "config": {
-        "command": "olympus-mcp",
-        "args": ["start", "--stdio"],
+        "command": "node",
+        "args": [
+          "${process.execPath.includes('node') ? '/usr/local/lib/node_modules/@olympuscloud/mcp-docs-server/mcp-launcher.js' : 'mcp-launcher.js'}",
+          "start",
+          "--stdio"
+        ],
         "env": {
-          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+          "NODE_OPTIONS": "--max-old-space-size=4096",
           "MCP_MODE": "true"
         }
       }
@@ -671,27 +680,49 @@ Or if installed globally:
   }
 }
 
-Or use the full path if not installed globally:
+Alternative configurations:
 
+// If installed locally in your project:
 {
   "github.copilot.chat.models": {
     "olympus-docs": {
       "type": "mcp",
       "config": {
-        "command": "${workspaceFolder}/node_modules/.bin/olympus-mcp",
-        "args": ["start", "--stdio"],
-        "env": {
-          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
-          "MCP_MODE": "true"
-        }
+        "command": "node",
+        "args": [
+          "\${workspaceFolder}/node_modules/@olympuscloud/mcp-docs-server/mcp-launcher.js",
+          "start",
+          "--stdio"
+        ]
+      }
+    }
+  }
+}
+
+// For development (running from source):
+{
+  "github.copilot.chat.models": {
+    "olympus-docs": {
+      "type": "mcp",
+      "config": {
+        "command": "node",
+        "args": [
+          "\${workspaceFolder}/dist/server.js",
+          "--stdio"
+        ],
+        "cwd": "\${workspaceFolder}"
       }
     }
   }
 }
         `);
-        console.log('\n5. Restart VS Code');
-        console.log('6. In Copilot Chat, you can now use @olympus-docs to query your documentation');
-        console.log('\nExample queries:');
+        console.log('\n4. Restart VS Code');
+        console.log('5. In Copilot Chat, you can now use @olympus-docs to query your documentation\n');
+        console.log('Troubleshooting:');
+        console.log('- If you get "executable not found", ensure the package is installed globally');
+        console.log('- Check logs: View > Output > GitHub Copilot Chat');
+        console.log('- Verify Node.js is in PATH: node --version\n');
+        console.log('Example queries:');
         console.log('  @olympus-docs how do I authenticate with the API?');
         console.log('  @olympus-docs show me examples of using React hooks');
         console.log('  @olympus-docs what are the Olympus Cloud best practices?');

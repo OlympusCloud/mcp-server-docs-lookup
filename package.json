@@ -18,6 +18,7 @@
     "setup-olympus.js",
     "olympus-ai.js",
     "index-olympus.js",
+    "mcp-launcher.js",
     "README.md",
     "OLYMPUS_QUICKSTART.md",
     "VSCODE_INTEGRATION.md",
