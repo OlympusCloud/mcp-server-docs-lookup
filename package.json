@@ -27,11 +27,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OlympusCloud/mcp-docs-server.git"
+    "url": "git+https://github.com/OlympusCloud/mcp-server-docs-lookup.git"
   },
-  "homepage": "https://github.com/OlympusCloud/mcp-docs-server#readme",
+  "homepage": "https://github.com/OlympusCloud/mcp-server-docs-lookup#readme",
   "bugs": {
-    "url": "https://github.com/OlympusCloud/mcp-docs-server/issues"
+    "url": "https://github.com/OlympusCloud/mcp-server-docs-lookup/issues"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
