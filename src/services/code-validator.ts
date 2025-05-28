@@ -85,14 +85,13 @@ export class CodeValidator {
   constructor(config: ValidationConfig = {}) {
     this.config = config;
     this.eslint = new ESLint({
-      baseConfig: {
-        extends: ['eslint:recommended'],
-        parserOptions: {
-          ecmaVersion: 2022,
-          sourceType: 'module',
+      overrideConfig: {
+        rules: {
+          ...this.buildESLintRules(),
+          'no-unused-vars': 'error',
+          'no-undef': 'error',
         },
-        rules: this.buildESLintRules(),
-      },
+      } as any,
     });
     this.ajv = new Ajv({ allErrors: true, verbose: true });
   }

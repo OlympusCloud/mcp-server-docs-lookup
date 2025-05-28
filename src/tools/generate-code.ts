@@ -14,11 +14,12 @@ export interface GenerateCodeParams {
 }
 
 export class GenerateCodeTool implements Tool {
+  [key: string]: unknown;
   name = 'generate_code';
   description = 'Generate code based on documentation patterns and best practices';
   
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       task: {
         type: 'string',
@@ -201,8 +202,8 @@ export class GenerateCodeTool implements Tool {
     return patterns;
   }
 
-  private async generateCode(params: any): Promise<any> {
-    const { task, language, framework, style, examples, patterns, includeComments } = params;
+  private async generateCode(codeParams: any): Promise<any> {
+    const { task, language, framework, style, examples, patterns, includeComments } = codeParams;
 
     // Build the code structure
     let code = '';
@@ -241,8 +242,8 @@ export class GenerateCodeTool implements Tool {
     };
   }
 
-  private generateJavaScriptCode(params: any): string {
-    const { task, framework, style, patterns, includeComments } = params;
+  private generateJavaScriptCode(jsParams: any): string {
+    const { task, framework, style, patterns, includeComments } = jsParams;
     let code = '';
 
     // Determine if we should use async/await based on patterns
@@ -260,8 +261,8 @@ export class GenerateCodeTool implements Tool {
     code += `${isAsync}function ${functionName}(`;
     
     // Add parameters based on task
-    const params = this.extractParameters(task);
-    code += params.join(', ');
+    const functionParams = this.extractParameters(task);
+    code += functionParams.join(', ');
     code += ') {\n';
 
     // Add implementation
@@ -288,8 +289,8 @@ export class GenerateCodeTool implements Tool {
     return code;
   }
 
-  private generatePythonCode(params: any): string {
-    const { task, includeComments } = params;
+  private generatePythonCode(pyParams: any): string {
+    const { task, includeComments } = pyParams;
     let code = '';
 
     const functionName = this.generateFunctionName(task, 'snake_case');
@@ -299,8 +300,8 @@ export class GenerateCodeTool implements Tool {
     }
 
     code += `def ${functionName}(`;
-    const params = this.extractParameters(task);
-    code += params.join(', ');
+    const pyFunctionParams = this.extractParameters(task);
+    code += pyFunctionParams.join(', ');
     code += '):\n';
     code += '    # Implementation based on documentation\n';
     code += '    pass\n';
@@ -308,8 +309,8 @@ export class GenerateCodeTool implements Tool {
     return code;
   }
 
-  private generateTests(params: any): string {
-    const { code, language, framework, task } = params;
+  private generateTests(testParams: any): string {
+    const { code, language, framework, task } = testParams;
     let tests = '';
 
     if (language === 'javascript' || language === 'typescript') {
@@ -327,8 +328,8 @@ describe('${functionName}', () => {
     return tests;
   }
 
-  private generateDocumentation(params: any): string {
-    const { task, code, language, framework } = params;
+  private generateDocumentation(docParams: any): string {
+    const { task, code, language, framework } = docParams;
     
     return `
 # ${task}

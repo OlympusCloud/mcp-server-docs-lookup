@@ -13,11 +13,12 @@ export interface ValidateCodeParams {
 }
 
 export class ValidateCodeTool implements Tool {
+  [key: string]: unknown;
   name = 'validate_code';
   description = 'Validate code against documentation, best practices, and coding standards';
   
   inputSchema = {
-    type: 'object',
+    type: 'object' as const,
     properties: {
       code: {
         type: 'string',
@@ -56,7 +57,7 @@ export class ValidateCodeTool implements Tool {
       const { code, language, task, framework, strictMode } = params;
 
       // Find relevant documentation
-      let relevantDocs = [];
+      let relevantDocs: any[] = [];
       if (task) {
         const query = `${task} ${framework || ''} ${language} best practices examples`;
         const embedding = await this.embeddingService.generateEmbedding(query);
