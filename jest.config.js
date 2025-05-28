@@ -6,7 +6,6 @@ module.exports = {
   testPathIgnorePatterns: [
     'tests/unit/services/document-processor.test.ts',
     'tests/unit/services/context-generator.test.ts', 
-    'tests/unit/utils/validation.test.ts',
     'tests/e2e/',
     'tests/integration/'
   ],

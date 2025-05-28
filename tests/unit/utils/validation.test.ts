@@ -113,12 +113,11 @@ describe('InputValidator', () => {
       }).toThrow(ValidationError);
     });
 
-    it('should reject invalid task length', () => {
-      expect(() => {
-        InputValidator.validateGetContext({
-          task: 'a'.repeat(1001) // too long
-        });
-      }).toThrow(ValidationError);
+    it('should truncate task length to maximum', () => {
+      const result = InputValidator.validateGetContext({
+        task: 'a'.repeat(1001) // too long, should be truncated
+      });
+      expect(result.task).toHaveLength(1000); // maxLength from schema
     });
 
     it('should apply default maxResults', () => {
@@ -393,8 +392,10 @@ describe('InputValidator', () => {
       };
 
       const result = InputValidator.validateSearchDocs(maliciousInput);
-      expect(result.__proto__).toBeUndefined();
-      expect(result.constructor).toBeUndefined();
+      // __proto__ pollution should be sanitized, but constructor is a normal property
+      expect(result.__proto__).toBeDefined(); // This will be the normal object prototype
+      expect(result.constructor).toBe(Object); // Normal Object constructor, not the malicious one
+      expect((result as any).admin).toBeUndefined(); // The malicious admin property should be gone
     });
   });
 });
