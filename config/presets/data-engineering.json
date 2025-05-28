@@ -1,0 +1,116 @@
+{
+  "repositories": [
+    {
+      "name": "apache-spark-docs",
+      "url": "https://github.com/apache/spark.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "high",
+      "category": "big-data",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "spark",
+        "verified": true
+      }
+    },
+    {
+      "name": "apache-kafka-docs",
+      "url": "https://github.com/apache/kafka.git",
+      "branch": "trunk",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "high",
+      "category": "streaming",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "kafka",
+        "verified": true
+      }
+    },
+    {
+      "name": "dbt-docs",
+      "url": "https://github.com/dbt-labs/docs.getdbt.com.git",
+      "branch": "current",
+      "authType": "none",
+      "paths": ["/website/docs"],
+      "priority": "high",
+      "category": "data-transformation",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "dbt",
+        "verified": true
+      }
+    },
+    {
+      "name": "airflow-docs",
+      "url": "https://github.com/apache/airflow.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "high",
+      "category": "orchestration",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "airflow",
+        "verified": true
+      }
+    },
+    {
+      "name": "pandas-docs",
+      "url": "https://github.com/pandas-dev/pandas.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/doc/source"],
+      "priority": "medium",
+      "category": "data-analysis",
+      "metadata": {
+        "type": "library-docs",
+        "library": "pandas",
+        "verified": true
+      }
+    },
+    {
+      "name": "polars-docs",
+      "url": "https://github.com/pola-rs/polars.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "medium",
+      "category": "data-analysis",
+      "metadata": {
+        "type": "library-docs",
+        "library": "polars",
+        "verified": true
+      }
+    },
+    {
+      "name": "elasticsearch-docs",
+      "url": "https://github.com/elastic/elasticsearch.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "medium",
+      "category": "search",
+      "metadata": {
+        "type": "database-docs",
+        "database": "elasticsearch",
+        "verified": true
+      }
+    },
+    {
+      "name": "awesome-data-engineering",
+      "url": "https://github.com/igorbarinov/awesome-data-engineering.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/README.md"],
+      "priority": "low",
+      "category": "resources",
+      "metadata": {
+        "type": "curated-list",
+        "topic": "data-engineering",
+        "verified": true
+      }
+    }
+  ]
+}

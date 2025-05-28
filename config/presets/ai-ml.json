@@ -1,0 +1,104 @@
+{
+  "repositories": [
+    {
+      "name": "langchain-docs",
+      "url": "https://github.com/langchain-ai/langchain.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "high",
+      "category": "ai-framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "langchain",
+        "verified": true
+      }
+    },
+    {
+      "name": "openai-cookbook",
+      "url": "https://github.com/openai/openai-cookbook.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/examples", "/articles"],
+      "priority": "high",
+      "category": "ai-examples",
+      "metadata": {
+        "type": "cookbook",
+        "provider": "openai",
+        "verified": true
+      }
+    },
+    {
+      "name": "huggingface-transformers",
+      "url": "https://github.com/huggingface/transformers.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/docs/source"],
+      "exclude": ["*/imgs", "*/videos"],
+      "priority": "high",
+      "category": "ml-library",
+      "metadata": {
+        "type": "library-docs",
+        "library": "transformers",
+        "verified": true
+      }
+    },
+    {
+      "name": "pytorch-tutorials",
+      "url": "https://github.com/pytorch/tutorials.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/beginner_source", "/intermediate_source", "/advanced_source"],
+      "priority": "medium",
+      "category": "ml-framework",
+      "metadata": {
+        "type": "tutorials",
+        "framework": "pytorch",
+        "verified": true
+      }
+    },
+    {
+      "name": "tensorflow-docs",
+      "url": "https://github.com/tensorflow/docs.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/site/en"],
+      "exclude": ["*/images", "*/videos"],
+      "priority": "medium",
+      "category": "ml-framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "tensorflow",
+        "verified": true
+      }
+    },
+    {
+      "name": "fastapi-docs",
+      "url": "https://github.com/tiangolo/fastapi.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/docs", "/docs_src"],
+      "priority": "medium",
+      "category": "api-framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "fastapi",
+        "verified": true
+      }
+    },
+    {
+      "name": "awesome-machine-learning",
+      "url": "https://github.com/josephmisiti/awesome-machine-learning.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/README.md"],
+      "priority": "low",
+      "category": "resources",
+      "metadata": {
+        "type": "curated-list",
+        "topic": "machine-learning",
+        "verified": true
+      }
+    }
+  ]
+}

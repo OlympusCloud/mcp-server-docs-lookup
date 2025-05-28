@@ -1,0 +1,184 @@
+{
+  "project": {
+    "name": "nebusai-development",
+    "description": "NebusAI platform and machine learning development documentation",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "nebusai-platform-docs",
+      "url": "https://github.com/company/nebusai-platform.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": [
+        "/docs/platform",
+        "/docs/apis",
+        "/docs/models",
+        "/docs/deployment",
+        "/docs/monitoring"
+      ],
+      "exclude": [
+        "*/internal",
+        "*/experimental",
+        "*/.github"
+      ],
+      "syncInterval": 60,
+      "priority": "high",
+      "category": "platform",
+      "metadata": {
+        "platform": "nebusai",
+        "type": "internal-docs",
+        "confidentiality": "internal"
+      }
+    },
+    {
+      "name": "pytorch-docs",
+      "url": "https://github.com/pytorch/pytorch.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/source",
+        "/torch",
+        "/aten/src/ATen"
+      ],
+      "exclude": [
+        "*/test",
+        "*/examples",
+        "*/benchmarks",
+        "*/.github"
+      ],
+      "syncInterval": 360,
+      "priority": "high",
+      "category": "framework",
+      "metadata": {
+        "framework": "pytorch",
+        "type": "official-docs",
+        "language": "python"
+      }
+    },
+    {
+      "name": "transformers-docs",
+      "url": "https://github.com/huggingface/transformers.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/source",
+        "/src/transformers"
+      ],
+      "exclude": [
+        "*/tests",
+        "*/examples",
+        "*/.github",
+        "*/model_cards"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "nlp",
+      "metadata": {
+        "framework": "transformers",
+        "type": "official-docs",
+        "domain": "nlp"
+      }
+    },
+    {
+      "name": "mlflow-docs",
+      "url": "https://github.com/mlflow/mlflow.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs/source",
+        "/mlflow"
+      ],
+      "exclude": [
+        "*/tests",
+        "*/examples",
+        "*/.github"
+      ],
+      "syncInterval": 300,
+      "priority": "medium",
+      "category": "mlops",
+      "metadata": {
+        "platform": "mlflow",
+        "type": "official-docs",
+        "category": "mlops"
+      }
+    },
+    {
+      "name": "langchain-docs",
+      "url": "https://github.com/langchain-ai/langchain.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs",
+        "/libs/langchain/langchain"
+      ],
+      "exclude": [
+        "*/tests",
+        "*/examples",
+        "*/.github",
+        "*/experimental"
+      ],
+      "syncInterval": 180,
+      "priority": "high",
+      "category": "llm",
+      "metadata": {
+        "framework": "langchain",
+        "type": "official-docs",
+        "domain": "llm"
+      }
+    },
+    {
+      "name": "openai-cookbook",
+      "url": "https://github.com/openai/openai-cookbook.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/examples",
+        "/text_comparison_examples",
+        "/apps"
+      ],
+      "exclude": [
+        "*/deprecated",
+        "*/.github"
+      ],
+      "syncInterval": 240,
+      "priority": "medium",
+      "category": "llm",
+      "metadata": {
+        "platform": "openai",
+        "type": "examples",
+        "domain": "llm"
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["semantic", "hybrid"],
+    "maxChunks": 40,
+    "priorityWeighting": {
+      "high": 3.0,
+      "medium": 1.5,
+      "low": 0.3
+    },
+    "customPrompts": {
+      "ai": "Focus on AI/ML best practices, model architecture, and performance optimization",
+      "llm": "Emphasize large language model usage, prompt engineering, and fine-tuning",
+      "mlops": "Highlight MLOps practices, model deployment, and monitoring",
+      "platform": "Focus on NebusAI platform features, APIs, and integration patterns"
+    }
+  },
+  "server": {
+    "port": 3003,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "https://localhost:*"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "nebusai-ml-docs"
+    }
+  }
+}

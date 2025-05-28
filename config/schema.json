@@ -1,0 +1,214 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Universal Documentation MCP Server Configuration",
+  "type": "object",
+  "required": ["project", "repositories"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Project name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Project description"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Project version (semver)"
+        }
+      }
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "url"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Repository identifier"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Git repository URL"
+          },
+          "branch": {
+            "type": "string",
+            "default": "main",
+            "description": "Branch to track"
+          },
+          "authType": {
+            "type": "string",
+            "enum": ["none", "token", "ssh"],
+            "default": "none",
+            "description": "Authentication type"
+          },
+          "credentials": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "Access token for authentication"
+              },
+              "username": {
+                "type": "string",
+                "description": "Username for authentication"
+              },
+              "password": {
+                "type": "string",
+                "description": "Password for authentication"
+              },
+              "sshKey": {
+                "type": "string",
+                "description": "Path to SSH key"
+              }
+            }
+          },
+          "paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": ["/"],
+            "description": "Paths to index within the repository"
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": ["node_modules", ".git", "dist", "build"],
+            "description": "Patterns to exclude from indexing"
+          },
+          "syncInterval": {
+            "type": "number",
+            "minimum": 1,
+            "default": 60,
+            "description": "Sync interval in minutes"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "default": "medium",
+            "description": "Repository priority for context generation"
+          },
+          "category": {
+            "type": "string",
+            "description": "Repository category (e.g., architecture, api, security)"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Additional metadata for the repository"
+          }
+        }
+      }
+    },
+    "contextGeneration": {
+      "type": "object",
+      "properties": {
+        "strategies": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["semantic", "keyword", "hybrid"]
+          },
+          "default": ["hybrid"],
+          "description": "Context generation strategies"
+        },
+        "maxChunks": {
+          "type": "number",
+          "minimum": 1,
+          "default": 20,
+          "description": "Maximum number of chunks to return"
+        },
+        "priorityWeighting": {
+          "type": "object",
+          "properties": {
+            "high": {
+              "type": "number",
+              "default": 1.5
+            },
+            "medium": {
+              "type": "number",
+              "default": 1.0
+            },
+            "low": {
+              "type": "number",
+              "default": 0.5
+            }
+          }
+        },
+        "customPrompts": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Custom prompts for specific scenarios"
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 65535,
+          "default": 3000
+        },
+        "host": {
+          "type": "string",
+          "default": "localhost"
+        },
+        "cors": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "origins": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": ["*"]
+            }
+          }
+        }
+      }
+    },
+    "vectorStore": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["qdrant", "memory"],
+          "default": "qdrant"
+        },
+        "qdrant": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string",
+              "default": "http://localhost:6333"
+            },
+            "collectionName": {
+              "type": "string",
+              "default": "documentation"
+            }
+          }
+        }
+      }
+    }
+  }
+}

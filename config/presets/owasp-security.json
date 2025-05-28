@@ -1,0 +1,69 @@
+{
+  "repositories": [
+    {
+      "name": "owasp-top-ten",
+      "url": "https://github.com/OWASP/Top10.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/"],
+      "priority": "high",
+      "category": "security",
+      "metadata": {
+        "type": "security-risks",
+        "standard": "owasp-top-10"
+      }
+    },
+    {
+      "name": "owasp-cheat-sheets",
+      "url": "https://github.com/OWASP/CheatSheetSeries.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/cheatsheets"],
+      "priority": "high",
+      "category": "security",
+      "metadata": {
+        "type": "security-guidelines",
+        "format": "cheatsheet"
+      }
+    },
+    {
+      "name": "owasp-api-security",
+      "url": "https://github.com/OWASP/API-Security.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/"],
+      "priority": "high",
+      "category": "api-security",
+      "metadata": {
+        "type": "api-security",
+        "standard": "owasp-api"
+      }
+    },
+    {
+      "name": "owasp-asvs",
+      "url": "https://github.com/OWASP/ASVS.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/"],
+      "priority": "medium",
+      "category": "security-verification",
+      "metadata": {
+        "type": "security-standard",
+        "standard": "asvs"
+      }
+    },
+    {
+      "name": "owasp-samm",
+      "url": "https://github.com/OWASP/samm.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/"],
+      "priority": "medium",
+      "category": "security-maturity",
+      "metadata": {
+        "type": "maturity-model",
+        "standard": "samm"
+      }
+    }
+  ]
+}

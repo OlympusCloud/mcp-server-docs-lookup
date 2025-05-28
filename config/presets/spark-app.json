@@ -1,0 +1,162 @@
+{
+  "project": {
+    "name": "spark-app-development",
+    "description": "Apache Spark and big data analytics documentation",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "spark-docs",
+      "url": "https://github.com/apache/spark.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs",
+        "/sql/core/src/main/scala/org/apache/spark/sql",
+        "/core/src/main/scala/org/apache/spark"
+      ],
+      "exclude": [
+        "*/test",
+        "*/examples",
+        "*/.github",
+        "*/target"
+      ],
+      "syncInterval": 360,
+      "priority": "high",
+      "category": "analytics",
+      "metadata": {
+        "platform": "spark",
+        "type": "official-docs",
+        "language": "scala"
+      }
+    },
+    {
+      "name": "databricks-docs",
+      "url": "https://github.com/databricks/docs.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/data-engineering",
+        "/docs/machine-learning",
+        "/docs/sql",
+        "/docs/delta",
+        "/docs/workflows"
+      ],
+      "exclude": [
+        "*/images",
+        "*/assets",
+        "*/.github"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "platform",
+      "metadata": {
+        "platform": "databricks",
+        "type": "official-docs",
+        "cloud": "databricks"
+      }
+    },
+    {
+      "name": "delta-lake-docs",
+      "url": "https://github.com/delta-io/delta.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs",
+        "/storage/src/main/java/io/delta/storage"
+      ],
+      "exclude": [
+        "*/test",
+        "*/target",
+        "*/.github"
+      ],
+      "syncInterval": 300,
+      "priority": "medium",
+      "category": "storage",
+      "metadata": {
+        "platform": "delta-lake",
+        "type": "official-docs",
+        "format": "lakehouse"
+      }
+    },
+    {
+      "name": "kafka-docs",
+      "url": "https://github.com/apache/kafka.git",
+      "branch": "trunk",
+      "authType": "none",
+      "paths": [
+        "/docs",
+        "/core/src/main/scala/kafka"
+      ],
+      "exclude": [
+        "*/test",
+        "*/examples",
+        "*/target",
+        "*/.github"
+      ],
+      "syncInterval": 360,
+      "priority": "medium",
+      "category": "streaming",
+      "metadata": {
+        "platform": "kafka",
+        "type": "official-docs",
+        "category": "streaming"
+      }
+    },
+    {
+      "name": "airflow-docs",
+      "url": "https://github.com/apache/airflow.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs",
+        "/airflow/operators",
+        "/airflow/hooks"
+      ],
+      "exclude": [
+        "*/tests",
+        "*/example_dags",
+        "*/.github",
+        "*/logs"
+      ],
+      "syncInterval": 300,
+      "priority": "medium",
+      "category": "orchestration",
+      "metadata": {
+        "platform": "airflow",
+        "type": "official-docs",
+        "category": "workflow"
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["semantic", "hybrid"],
+    "maxChunks": 35,
+    "priorityWeighting": {
+      "high": 2.5,
+      "medium": 1.2,
+      "low": 0.4
+    },
+    "customPrompts": {
+      "spark": "Focus on Spark performance optimization, data processing patterns, and cluster management",
+      "streaming": "Emphasize real-time data processing, windowing, and state management",
+      "analytics": "Highlight data analysis patterns, SQL optimization, and ML workflows",
+      "performance": "Focus on performance tuning, memory management, and optimization strategies"
+    }
+  },
+  "server": {
+    "port": 3002,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "https://localhost:*"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "spark-analytics-docs"
+    }
+  }
+}

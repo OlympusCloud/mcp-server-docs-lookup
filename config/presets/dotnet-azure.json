@@ -1,0 +1,113 @@
+{
+  "project": {
+    "name": "dotnet-azure-development",
+    "description": ".NET and Azure development documentation",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "dotnet-docs",
+      "url": "https://github.com/dotnet/docs.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/core",
+        "/docs/csharp",
+        "/docs/framework",
+        "/docs/standard",
+        "/docs/azure"
+      ],
+      "exclude": [
+        "*/samples/*",
+        "*/includes/*",
+        "*/media/*",
+        "*/.github/*",
+        "*.png",
+        "*.jpg",
+        "*.gif"
+      ],
+      "syncInterval": 360,
+      "priority": "medium",
+      "maxDepth": 3,
+      "category": "platform",
+      "metadata": {
+        "platform": "dotnet",
+        "type": "official-docs",
+        "language": "csharp"
+      }
+    },
+    {
+      "name": "azure-docs",
+      "url": "https://github.com/MicrosoftDocs/azure-docs.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/articles/app-service",
+        "/articles/azure-functions",
+        "/articles/key-vault",
+        "/articles/active-directory",
+        "/articles/storage",
+        "/articles/sql-database",
+        "/articles/cosmos-db",
+        "/articles/monitoring",
+        "/articles/security"
+      ],
+      "exclude": [
+        "*/media",
+        "*/includes",
+        "*/.github",
+        "*/quickstart*",
+        "*/tutorial*"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "cloud",
+      "metadata": {
+        "platform": "azure",
+        "type": "official-docs",
+        "cloud": "microsoft"
+      }
+    },
+    {
+      "name": "azure-sdk-net",
+      "url": "https://github.com/Azure/azure-sdk-for-net.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/doc", "/samples"],
+      "exclude": [
+        "*/bin/*",
+        "*/obj/*",
+        "*/target/*",
+        "*.dll",
+        "*.exe",
+        "*.nupkg",
+        "*/media/*"
+      ],
+      "syncInterval": 360,
+      "priority": "high",
+      "category": "azure-sdk",
+      "metadata": {
+        "platform": "azure",
+        "type": "sdk-docs",
+        "language": "csharp",
+        "saas": true
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["hybrid"],
+    "maxChunks": 25,
+    "priorityWeighting": {
+      "high": 2.0,
+      "medium": 1.0,
+      "low": 0.3
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "dotnet-azure-docs"
+    }
+  }
+}

@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-server-docs
+  namespace: mcp-system
+  labels:
+    app: mcp-server-docs
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mcp-server-docs
+  template:
+    metadata:
+      labels:
+        app: mcp-server-docs
+    spec:
+      containers:
+      - name: mcp-server
+        image: docker.io/your-username/mcp-server-docs:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: QDRANT_URL
+          value: "http://qdrant:6333"
+        - name: REDIS_URL
+          value: "redis://redis:6379"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: mcp-secrets
+              key: jwt-secret
+        - name: API_KEYS
+          valueFrom:
+            secretKeyRef:
+              name: mcp-secrets
+              key: api-keys
+        - name: API_SIGNING_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: mcp-secrets
+              key: api-signing-secret
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: data
+          mountPath: /app/data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: mcp-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: mcp-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-server
+  namespace: mcp-system
+  labels:
+    app: mcp-server-docs
+spec:
+  selector:
+    app: mcp-server-docs
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: http
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mcp-data-pvc
+  namespace: mcp-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mcp-config
+  namespace: mcp-system
+data:
+  config.yaml: |
+    project:
+      name: "Production MCP Server"
+      description: "Universal documentation MCP server"
+    
+    server:
+      port: 3000
+      host: "0.0.0.0"
+    
+    vectorStore:
+      type: "qdrant"
+      config:
+        url: "http://qdrant:6333"
+        collection: "documentation"
+    
+    contextGeneration:
+      maxTokens: 8000
+      minRelevanceScore: 0.7
+      includeMetadata: true
+      progressive:
+        enabled: true
+        levels:
+          - name: "overview"
+            maxChunks: 3
+          - name: "detailed"
+            maxChunks: 10
+          - name: "comprehensive"
+            maxChunks: 25
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mcp-secrets
+  namespace: mcp-system
+type: Opaque
+stringData:
+  jwt-secret: "your-jwt-secret-here"
+  api-keys: '[{"id":"key_1","key":"your-api-key","name":"Admin Key","role":"admin","scopes":["*"]}]'
+  api-signing-secret: "your-signing-secret-here"

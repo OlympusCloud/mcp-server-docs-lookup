@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+
+# Temporary files
+temp/
+tmp/
+
+# Application data
+data/
+qdrant_storage/
+
+# Config with sensitive data
+config/config.json
+!config/config.example.json
+!config/presets/
+
+# Runtime files
+server.log
+*.pid
+
+# Development files
+test-*.js
+*test*.js
+claude-test.js

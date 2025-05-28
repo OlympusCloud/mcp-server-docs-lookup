@@ -1,0 +1,116 @@
+{
+  "repositories": [
+    {
+      "name": "mdn-content",
+      "url": "https://github.com/mdn/content.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/files/en-us/web/javascript", "/files/en-us/web/api", "/files/en-us/web/html", "/files/en-us/web/css"],
+      "priority": "medium",
+      "category": "web-standards",
+      "metadata": {
+        "type": "web-documentation",
+        "source": "mdn",
+        "verified": true
+      }
+    },
+    {
+      "name": "react-docs",
+      "url": "https://github.com/reactjs/react.dev.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/src/content/learn", "/src/content/reference"],
+      "priority": "high",
+      "category": "framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "react",
+        "verified": true
+      }
+    },
+    {
+      "name": "nodejs-docs",
+      "url": "https://github.com/nodejs/node.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/doc/api"],
+      "priority": "high",
+      "category": "runtime",
+      "metadata": {
+        "type": "runtime-docs",
+        "runtime": "nodejs",
+        "verified": true
+      }
+    },
+    {
+      "name": "typescript-handbook",
+      "url": "https://github.com/microsoft/TypeScript-Website.git",
+      "branch": "v2",
+      "authType": "none",
+      "paths": ["/packages/documentation"],
+      "priority": "high",
+      "category": "language",
+      "metadata": {
+        "type": "language-docs",
+        "language": "typescript",
+        "verified": true
+      }
+    },
+    {
+      "name": "vue-docs",
+      "url": "https://github.com/vuejs/docs.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/src"],
+      "priority": "high",
+      "category": "framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "vue",
+        "verified": true
+      }
+    },
+    {
+      "name": "nextjs-docs",
+      "url": "https://github.com/vercel/next.js.git",
+      "branch": "canary",
+      "authType": "none",
+      "paths": ["/docs"],
+      "priority": "high",
+      "category": "framework",
+      "metadata": {
+        "type": "framework-docs",
+        "framework": "nextjs",
+        "verified": true
+      }
+    },
+    {
+      "name": "awesome-python",
+      "url": "https://github.com/vinta/awesome-python.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/README.md"],
+      "priority": "low",
+      "category": "resources",
+      "metadata": {
+        "type": "curated-list",
+        "language": "python",
+        "verified": true
+      }
+    },
+    {
+      "name": "awesome-javascript",
+      "url": "https://github.com/sorrycc/awesome-javascript.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/README.md"],
+      "priority": "low",
+      "category": "resources",
+      "metadata": {
+        "type": "curated-list",
+        "language": "javascript",
+        "verified": true
+      }
+    }
+  ]
+}

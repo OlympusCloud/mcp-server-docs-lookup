@@ -1,0 +1,304 @@
+{
+  "project": {
+    "name": "nebusai-enhanced-docs",
+    "description": "NebusAI enhanced documentation with AI/ML frameworks and cloud platforms",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "huggingface-transformers",
+      "url": "https://github.com/huggingface/transformers.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/source/en",
+        "/examples"
+      ],
+      "exclude": [
+        "*/tests/*",
+        "*/benchmarks/*",
+        "*.png",
+        "*.jpg",
+        "*/videos/*"
+      ],
+      "syncInterval": 180,
+      "priority": "high",
+      "category": "ai-ml",
+      "metadata": {
+        "framework": "transformers",
+        "type": "ai-library",
+        "focus": "nlp-models"
+      }
+    },
+    {
+      "name": "openai-cookbook",
+      "url": "https://github.com/openai/openai-cookbook.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/examples",
+        "/articles"
+      ],
+      "exclude": [
+        "*/data/*",
+        "*.png",
+        "*.jpg",
+        "*/notebooks/legacy/*"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "ai-examples",
+      "metadata": {
+        "provider": "openai",
+        "type": "ai-examples",
+        "focus": "gpt-integration"
+      }
+    },
+    {
+      "name": "azure-cognitive-services",
+      "url": "https://github.com/MicrosoftDocs/azure-docs.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/articles/cognitive-services",
+        "/articles/machine-learning",
+        "/articles/ai-services"
+      ],
+      "exclude": [
+        "*/media/*",
+        "*/includes/*",
+        "*.png",
+        "*.jpg"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "azure-ai",
+      "metadata": {
+        "platform": "azure",
+        "type": "ai-services",
+        "focus": "cognitive-services"
+      }
+    },
+    {
+      "name": "langchain-docs",
+      "url": "https://github.com/langchain-ai/langchain.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs/docs",
+        "/cookbook"
+      ],
+      "exclude": [
+        "*/tests/*",
+        "*/benchmarks/*",
+        "*.png",
+        "*.jpg"
+      ],
+      "syncInterval": 180,
+      "priority": "high",
+      "category": "ai-frameworks",
+      "metadata": {
+        "framework": "langchain",
+        "type": "ai-orchestration",
+        "focus": "llm-applications"
+      }
+    },
+    {
+      "name": "pytorch-docs",
+      "url": "https://github.com/pytorch/pytorch.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/docs/source",
+        "/tutorials"
+      ],
+      "exclude": [
+        "*/test/*",
+        "*/benchmarks/*",
+        "*.png",
+        "*.jpg",
+        "/c10/*",
+        "/torch/csrc/*"
+      ],
+      "syncInterval": 360,
+      "priority": "medium",
+      "category": "ml-frameworks",
+      "metadata": {
+        "framework": "pytorch",
+        "type": "deep-learning",
+        "focus": "neural-networks"
+      }
+    },
+    {
+      "name": "tensorflow-docs",
+      "url": "https://github.com/tensorflow/docs.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/site/en/guide",
+        "/site/en/tutorials",
+        "/site/en/api_docs"
+      ],
+      "exclude": [
+        "*/images/*",
+        "*.png",
+        "*.jpg",
+        "*/legacy/*"
+      ],
+      "syncInterval": 360,
+      "priority": "medium",
+      "category": "ml-frameworks",
+      "metadata": {
+        "framework": "tensorflow",
+        "type": "deep-learning",
+        "focus": "machine-learning"
+      }
+    },
+    {
+      "name": "fastapi-docs",
+      "url": "https://github.com/tiangolo/fastapi.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs/en/docs"
+      ],
+      "exclude": [
+        "*/img/*",
+        "*.png",
+        "*.jpg",
+        "*/tests/*"
+      ],
+      "syncInterval": 180,
+      "priority": "high",
+      "category": "api-frameworks",
+      "metadata": {
+        "framework": "fastapi",
+        "type": "web-framework",
+        "focus": "api-development"
+      }
+    },
+    {
+      "name": "vector-databases",
+      "url": "https://github.com/qdrant/qdrant.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": [
+        "/docs"
+      ],
+      "exclude": [
+        "*/src/*",
+        "*/tests/*",
+        "*.png",
+        "*.jpg"
+      ],
+      "syncInterval": 360,
+      "priority": "medium",
+      "category": "vector-db",
+      "metadata": {
+        "type": "vector-database",
+        "focus": "similarity-search"
+      }
+    },
+    {
+      "name": "anthropic-claude-docs",
+      "url": "https://github.com/anthropics/anthropic-sdk-python.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/README.md",
+        "/examples"
+      ],
+      "exclude": [
+        "*/tests/*",
+        "*.png",
+        "*.jpg"
+      ],
+      "syncInterval": 240,
+      "priority": "high",
+      "category": "ai-apis",
+      "metadata": {
+        "provider": "anthropic",
+        "type": "ai-api",
+        "focus": "claude-integration"
+      }
+    },
+    {
+      "name": "ai-engineering-patterns",
+      "url": "https://github.com/microsoft/AI-For-Beginners.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": [
+        "/lessons",
+        "/sketchnotes"
+      ],
+      "exclude": [
+        "*/images/*",
+        "*.png",
+        "*.jpg",
+        "*/solutions/*"
+      ],
+      "syncInterval": 480,
+      "priority": "medium",
+      "category": "ai-education",
+      "metadata": {
+        "type": "educational-content",
+        "focus": "ai-fundamentals"
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["semantic", "hybrid"],
+    "maxChunks": 30,
+    "priorityWeighting": {
+      "high": 2.5,
+      "medium": 1.0,
+      "low": 0.4
+    },
+    "categoryWeighting": {
+      "ai-ml": 2.0,
+      "ai-frameworks": 1.9,
+      "ai-apis": 1.8,
+      "azure-ai": 1.7,
+      "api-frameworks": 1.6,
+      "ml-frameworks": 1.5,
+      "vector-db": 1.4,
+      "ai-examples": 1.3,
+      "ai-education": 1.1
+    }
+  },
+  "server": {
+    "port": 3001,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "https://nebusai.com"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "nebusai_enhanced_docs",
+      "vectorSize": 384,
+      "distance": "Cosine"
+    }
+  },
+  "embedding": {
+    "provider": "local",
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "chunkSize": 1800,
+    "chunkOverlap": 350
+  },
+  "security": {
+    "enableInputSanitization": true,
+    "enableRateLimiting": true,
+    "rateLimitRequests": 150,
+    "rateLimitWindow": 60000,
+    "enablePIIRedaction": true
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "enablePerformanceTracking": true,
+    "logLevel": "info"
+  }
+}

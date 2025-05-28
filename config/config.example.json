@@ -1,0 +1,48 @@
+{
+  "project": {
+    "name": "my-documentation-project",
+    "description": "Universal documentation for my project",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "react-docs",
+      "url": "https://github.com/reactjs/react.dev.git",
+      "branch": "main",
+      "authType": "none",
+      "paths": ["/src/content/learn", "/src/content/reference"],
+      "exclude": ["*/examples", "*/snippets"],
+      "syncInterval": 60,
+      "priority": "high",
+      "category": "framework",
+      "metadata": {
+        "framework": "react",
+        "type": "official-docs"
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["hybrid"],
+    "maxChunks": 20,
+    "priorityWeighting": {
+      "high": 1.5,
+      "medium": 1.0,
+      "low": 0.5
+    }
+  },
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "cors": {
+      "enabled": true,
+      "origins": ["*"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "documentation"
+    }
+  }
+}

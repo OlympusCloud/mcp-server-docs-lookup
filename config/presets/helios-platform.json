@@ -1,0 +1,112 @@
+{
+  "project": {
+    "name": "helios-platform-development",
+    "description": "Helios Platform development documentation and guidelines",
+    "version": "1.0.0"
+  },
+  "repositories": [
+    {
+      "name": "platform-docs",
+      "url": "https://github.com/company/helios-platform-docs.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": [
+        "/docs/architecture",
+        "/docs/apis",
+        "/docs/deployment",
+        "/docs/security",
+        "/docs/monitoring",
+        "/docs/best-practices"
+      ],
+      "exclude": [
+        "*/internal",
+        "*/drafts",
+        "*/.github"
+      ],
+      "syncInterval": 60,
+      "priority": "high",
+      "category": "platform",
+      "metadata": {
+        "platform": "helios",
+        "type": "internal-docs",
+        "confidentiality": "internal"
+      }
+    },
+    {
+      "name": "api-specifications",
+      "url": "https://github.com/company/helios-api-specs.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": [
+        "/openapi",
+        "/schemas",
+        "/examples"
+      ],
+      "exclude": [
+        "*/deprecated",
+        "*/temp"
+      ],
+      "syncInterval": 30,
+      "priority": "high",
+      "category": "api",
+      "metadata": {
+        "platform": "helios",
+        "type": "api-docs",
+        "format": "openapi"
+      }
+    },
+    {
+      "name": "development-guidelines",
+      "url": "https://github.com/company/helios-dev-guidelines.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": [
+        "/coding-standards",
+        "/security-guidelines",
+        "/testing-standards",
+        "/deployment-procedures"
+      ],
+      "exclude": [
+        "*/examples",
+        "*/templates"
+      ],
+      "syncInterval": 120,
+      "priority": "medium",
+      "category": "guidelines",
+      "metadata": {
+        "platform": "helios",
+        "type": "guidelines",
+        "scope": "development"
+      }
+    }
+  ],
+  "contextGeneration": {
+    "strategies": ["semantic", "hybrid"],
+    "maxChunks": 30,
+    "priorityWeighting": {
+      "high": 3.0,
+      "medium": 1.5,
+      "low": 0.5
+    },
+    "customPrompts": {
+      "platform": "Focus on Helios Platform architecture, patterns, and integration points",
+      "security": "Emphasize platform security requirements and compliance standards",
+      "api": "Highlight API usage patterns, authentication, and rate limiting"
+    }
+  },
+  "server": {
+    "port": 3001,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "https://localhost:*"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "helios-platform-docs"
+    }
+  }
+}

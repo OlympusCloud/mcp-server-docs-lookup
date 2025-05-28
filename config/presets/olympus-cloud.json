@@ -1,0 +1,74 @@
+{
+  "repositories": [
+    {
+      "name": "olympus-architecture",
+      "url": "https://github.com/YOUR-ORG/olympus-architecture.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": ["/docs", "/specifications", "/patterns"],
+      "priority": "high",
+      "category": "architecture",
+      "metadata": {
+        "type": "core-architecture",
+        "audience": "developers",
+        "note": "Replace with your actual Olympus Cloud repository URLs"
+      }
+    },
+    {
+      "name": "hub-templates",
+      "url": "https://github.com/YOUR-ORG/hub-templates.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": ["/templates", "/examples"],
+      "priority": "high",
+      "category": "implementation",
+      "metadata": {
+        "type": "hub-templates",
+        "audience": "developers",
+        "note": "Replace with your actual Olympus Cloud repository URLs"
+      }
+    },
+    {
+      "name": "api-standards",
+      "url": "https://github.com/YOUR-ORG/api-standards.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": ["/standards", "/guidelines", "/openapi"],
+      "priority": "high",
+      "category": "api",
+      "metadata": {
+        "type": "api-design",
+        "audience": "developers",
+        "note": "Replace with your actual Olympus Cloud repository URLs"
+      }
+    },
+    {
+      "name": "deployment-patterns",
+      "url": "https://github.com/YOUR-ORG/deployment-patterns.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": ["/kubernetes", "/terraform", "/ci-cd"],
+      "priority": "medium",
+      "category": "deployment",
+      "metadata": {
+        "type": "infrastructure",
+        "audience": "devops",
+        "note": "Replace with your actual Olympus Cloud repository URLs"
+      }
+    },
+    {
+      "name": "security-guidelines",
+      "url": "https://github.com/YOUR-ORG/security-guidelines.git",
+      "branch": "main",
+      "authType": "token",
+      "paths": ["/policies", "/best-practices", "/compliance"],
+      "priority": "high",
+      "category": "security",
+      "metadata": {
+        "type": "security",
+        "audience": "all",
+        "note": "Replace with your actual Olympus Cloud repository URLs"
+      }
+    }
+  ]
+}
