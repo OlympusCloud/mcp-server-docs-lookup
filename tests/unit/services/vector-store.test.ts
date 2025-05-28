@@ -17,7 +17,40 @@ describe('VectorStore', () => {
       delete: jest.fn(),
       scroll: jest.fn(),
       getCollection: jest.fn(),
+      deleteCollection: jest.fn(),
     } as any;
+
+    // Default mock setup - collection exists
+    mockQdrantClient.getCollections.mockResolvedValue({
+      collections: [{ name: 'test-collection' }],
+    });
+
+    mockQdrantClient.upsert.mockResolvedValue({
+      operation_id: null,
+      status: 'completed'
+    });
+    mockQdrantClient.search.mockResolvedValue([]);
+    mockQdrantClient.delete.mockResolvedValue({
+      operation_id: null,
+      status: 'completed'
+    });
+    mockQdrantClient.getCollection.mockResolvedValue({
+      status: 'green',
+      optimizer_status: 'ok',
+      vectors_count: 0,
+      indexed_vectors_count: 0,
+      points_count: 0,
+      segments_count: 1,
+      config: {
+        params: {
+          vectors: {
+            size: 384,
+            distance: 'Cosine'
+          }
+        }
+      },
+      payload_schema: {}
+    } as any);
 
     (QdrantClient as jest.MockedClass<typeof QdrantClient>).mockImplementation(() => mockQdrantClient);
 
@@ -43,6 +76,10 @@ describe('VectorStore', () => {
           size: 384,
           distance: 'Cosine',
         },
+        optimizers_config: {
+          default_segment_number: 2,
+        },
+        replication_factor: 1,
       });
     });
 
@@ -82,11 +119,25 @@ describe('VectorStore', () => {
         wait: true,
         points: [
           {
-            id: 'chunk-1',
+            id: expect.any(String), // UUID format from convertToQdrantId
             vector: chunks[0].embedding,
             payload: {
+              originalId: 'chunk-1',
+              documentId: 'doc-1',
+              repository: 'test-repo',
+              filepath: '/test.md',
               content: 'Test content',
-              metadata: chunks[0].metadata,
+              type: 'paragraph',
+              metadata: {
+                documentId: 'doc-1',
+                filepath: '/test.md',
+              },
+              startLine: undefined,
+              endLine: undefined,
+              parentChunkId: undefined,
+              childChunkIds: undefined,
+              hash: 'test-hash',
+              priority: 'medium',
             },
           },
         ],

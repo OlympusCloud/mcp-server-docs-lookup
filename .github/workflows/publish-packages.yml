@@ -1,0 +1,111 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com/'
+          scope: '@olympuscloud'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+            
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests
+        run: npm test
+        
+      - name: Run linter
+        run: npm run lint
+        
+      - name: Build project
+        run: npm run build
+        
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+      - name: Bump version (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm version ${{ github.event.inputs.version }}
+          git push --follow-tags
+          
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## Changes in this Release
+            
+            ### 🚀 Features
+            - MCP Documentation Server with Circuit Breaker resilience
+            - Multi-repository documentation indexing and search
+            - Support for Claude Desktop and GitHub Copilot integration
+            - Azure/Azure SDK, .NET, and enterprise documentation presets
+            
+            ### 📦 Installation
+            
+            ```bash
+            # Configure registry
+            npm config set @olympuscloud:registry https://npm.pkg.github.com/
+            
+            # Install globally
+            npm install -g @olympuscloud/mcp-docs-server
+            
+            # Olympus setup
+            olympus-mcp-setup --olympus
+            ```
+            
+            ### 📚 Documentation
+            - [Repository](https://github.com/OlympusCloud/mcp-server-docs-lookup)
+            - [Publishing Guide](./PUBLISH.md)
+            
+            🤖 Auto-generated release
+          draft: false
+          prerelease: false

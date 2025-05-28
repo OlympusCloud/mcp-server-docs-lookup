@@ -34,8 +34,8 @@
     "url": "https://github.com/OlympusCloud/mcp-server-docs-lookup/issues"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "registry": "https://npm.pkg.github.com/",
+    "access": "restricted"
   },
   "scripts": {
     "build": "tsc",

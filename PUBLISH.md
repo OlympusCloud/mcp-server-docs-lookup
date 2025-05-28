@@ -1,21 +1,30 @@
-# Publishing to NPM
+# Publishing to GitHub Packages (Private)
 
 ## Prerequisites
 
-1. **NPM Account**: Ensure you have an NPM account with access to the `@olympuscloud` organization
-2. **NPM Login**: Run `npm login` and authenticate
-3. **Organization Access**: Make sure you have publish access to `@olympuscloud` scope
+1. **GitHub Account**: Ensure you have a GitHub account with access to the `OlympusCloud` organization
+2. **GitHub Token**: Create a Personal Access Token with `packages:write` permission
+3. **Organization Access**: Make sure you have write access to OlympusCloud packages
 
 ## Publishing Steps
 
-### 1. Verify Build
+### 1. Setup GitHub Authentication
+```bash
+# Set your GitHub token (replace with your actual token)
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Or add to ~/.npmrc globally
+echo "//npm.pkg.github.com/:_authToken=YOUR_TOKEN" >> ~/.npmrc
+```
+
+### 2. Verify Build
 ```bash
 npm run build
 npm run lint
 npm test
 ```
 
-### 2. Version Management
+### 3. Version Management
 ```bash
 # For patch release (bug fixes)
 npm version patch
@@ -27,31 +36,38 @@ npm version minor
 npm version major
 ```
 
-### 3. Publish Package
+### 4. Publish to GitHub Packages
 ```bash
 # Dry run to check what will be published
 npm publish --dry-run
 
-# Actual publish
+# Actual publish to GitHub Packages
 npm publish
 ```
 
-### 4. Verify Publication
+### 5. Verify Publication
 ```bash
-npm info @olympuscloud/mcp-docs-server
+# Check GitHub Packages
+npm view @olympuscloud/mcp-docs-server --registry https://npm.pkg.github.com/
 ```
 
 ## Package Details
 
 - **Name**: `@olympuscloud/mcp-docs-server`
 - **Current Version**: `1.0.0`
-- **Registry**: https://registry.npmjs.org/
-- **Access**: Public
+- **Registry**: https://npm.pkg.github.com/
+- **Access**: Private (OlympusCloud organization)
 - **Repository**: https://github.com/OlympusCloud/mcp-server-docs-lookup
 
 ## Installation After Publish
 
 ```bash
+# Configure registry for @olympuscloud scope
+npm config set @olympuscloud:registry https://npm.pkg.github.com/
+
+# Authenticate (using your GitHub token)
+npm login --scope=@olympuscloud --registry=https://npm.pkg.github.com/
+
 # Global installation
 npm install -g @olympuscloud/mcp-docs-server
 
