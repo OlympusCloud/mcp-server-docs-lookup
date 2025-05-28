@@ -65,7 +65,7 @@ export class GitSyncService extends EventEmitter {
 
   private async getAuth(repo: RepositoryConfig): Promise<any> {
     switch (repo.authType) {
-      case 'token':
+      case 'token': {
         // Check for token in config or environment variable
         const token = repo.credentials?.token || process.env.GITHUB_TOKEN;
         if (!token) {
@@ -75,6 +75,7 @@ export class GitSyncService extends EventEmitter {
           username: 'x-access-token',
           password: token
         };
+      }
       
       case 'ssh':
         throw new RepositoryError('SSH authentication not yet implemented');

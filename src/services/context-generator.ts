@@ -163,7 +163,7 @@ export class ContextGenerator {
     });
   }
 
-  private async keywordSearch(query: ContextQuery): Promise<SearchResult[]> {
+  private async keywordSearch(_query: ContextQuery): Promise<SearchResult[]> {
     // Keyword search disabled due to Qdrant API issues
     // Return empty results to allow semantic search to work
     return [];

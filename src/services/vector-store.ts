@@ -196,7 +196,7 @@ export class VectorStore {
       // Try a fallback approach - attempt to continue anyway
       try {
         // Check if collection exists as a simpler test
-        const collectionInfo = await withTimeout(
+        const _collectionInfo = await withTimeout(
           this.client.getCollection(this.collectionName),
           2000,
           new Error('Collection check timeout')

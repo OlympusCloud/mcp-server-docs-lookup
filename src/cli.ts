@@ -26,9 +26,9 @@ program
   .command('init [preset]')
   .description('Initialize configuration with optional preset')
   .option('-l, --list', 'List available presets')
-  .action(async (preset?: string, options?: { list?: boolean }) => {
+  .action(async (preset?: string, _options?: { list?: boolean }) => {
     try {
-      if (options?.list) {
+      if (_options?.list) {
         console.log('📋 Available presets:\n');
         
         const presets = [
@@ -313,7 +313,7 @@ program
   .option('-l, --limit <limit>', 'Maximum results', '10')
   .option('-r, --repository <repo>', 'Filter by repository')
   .option('-c, --category <category>', 'Filter by category')
-  .action(async (query: string, options: any) => {
+  .action(async (query: string, _options: any) => {
     try {
       const configLoader = new ConfigLoader();
       const config = await configLoader.loadConfig();
@@ -331,9 +331,9 @@ program
 
       const result = await contextGenerator.generateContext({
         task: query,
-        maxResults: parseInt(options.limit),
-        repositories: options.repository ? [options.repository] : undefined,
-        categories: options.category ? [options.category] : undefined
+        maxResults: parseInt(_options.limit),
+        repositories: _options.repository ? [_options.repository] : undefined,
+        categories: _options.category ? [_options.category] : undefined
       });
 
       console.log(`\n🔍 Search results for: "${query}"`);
@@ -463,7 +463,7 @@ if (isOlympusMode) {
     .command('olympus <action> [target]')
     .description('Olympus Cloud specific commands')
     .option('-t, --type <type>', 'Filter by type (hub, app, docs)')
-    .action(async (action: string, target?: string, options?: any) => {
+    .action(async (action: string, target?: string, _options?: any) => {
       try {
         const configLoader = new ConfigLoader();
         const config = await configLoader.loadConfig();
@@ -480,7 +480,7 @@ if (isOlympusMode) {
         await vectorStore.initialize();
 
         switch (action) {
-          case 'implement':
+          case 'implement': {
             const implementQuery = `implement ${target} in Olympus Cloud best practices examples code patterns`;
             const implementResult = await contextGenerator.generateContext({
               task: implementQuery,
@@ -492,8 +492,9 @@ if (isOlympusMode) {
               console.log(`   ${chunk.content.substring(0, 300)}...\n`);
             });
             break;
+          }
 
-          case 'integrate':
+          case 'integrate': {
             const integrateQuery = `${target} integration API endpoints authentication examples Olympus`;
             const integrateResult = await contextGenerator.generateContext({
               task: integrateQuery,
@@ -505,8 +506,9 @@ if (isOlympusMode) {
               console.log(`   ${chunk.content.substring(0, 300)}...\n`);
             });
             break;
+          }
 
-          case 'architecture':
+          case 'architecture': {
             const archQuery = `${target || 'Olympus Cloud'} architecture patterns microservices hub app design`;
             const archResult = await contextGenerator.generateContext({
               task: archQuery,
@@ -518,8 +520,9 @@ if (isOlympusMode) {
               console.log(`   ${chunk.content.substring(0, 300)}...\n`);
             });
             break;
+          }
 
-          case 'list':
+          case 'list': {
             console.log('\n📚 Olympus Cloud Components:\n');
             console.log('🏛️  Platform:');
             console.log('  - olympus-cloud: Main platform');
@@ -536,6 +539,7 @@ if (isOlympusMode) {
             console.log('  - olympus-docs: Complete docs');
             console.log('  - olympus-standards: Best practices');
             break;
+          }
 
           default:
             console.log('❌ Unknown action:', action);
@@ -554,7 +558,7 @@ if (isOlympusMode) {
     .description('Index Olympus Cloud repositories')
     .option('--all', 'Index all Olympus repositories')
     .option('--type <type>', 'Index by type (hub, app, docs)')
-    .action(async (options: any) => {
+    .action(async (_options: any) => {
       try {
         console.log('🚀 Starting Olympus Cloud indexing...\n');
         
