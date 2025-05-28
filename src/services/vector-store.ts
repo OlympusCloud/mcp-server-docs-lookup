@@ -58,10 +58,13 @@ export class VectorStore {
     this.performanceMonitor = performanceMonitor;
     
     // Cleanup rate limiter periodically
-    setInterval(() => {
+    const cleanupInterval = setInterval(() => {
       this.searchRateLimiter.cleanup();
       this.upsertRateLimiter.cleanup();
     }, 300000); // Every 5 minutes
+    
+    // Don't keep the process alive just for cleanup
+    cleanupInterval.unref();
   }
 
   // Qdrant namespace UUID for consistent ID generation

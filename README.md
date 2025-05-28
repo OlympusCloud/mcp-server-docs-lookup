@@ -295,27 +295,45 @@ The MCP server will automatically connect and provide documentation tools.
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-### GitHub Copilot Integration
+### GitHub Copilot Integration (VS Code)
 
-While GitHub Copilot doesn't directly support MCP, you can use the API mode:
+GitHub Copilot now supports MCP servers through the Language Model API extension.
 
-**Step 1: Start API server**
+**Quick Setup:**
 ```bash
-cd /path/to/mcp-server-docs-lookup
-node dist/cli.js start --mode api --port 3001
+olympus-mcp integrate github-copilot
 ```
 
-**Step 2: Create VS Code extension or use curl commands**
-```bash
-# Search documentation
-curl -X POST http://localhost:3001/api/search \
-  -H "Content-Type: application/json" \
-  -d '{"query": "React hooks", "maxResults": 10}'
+**Manual Setup:**
 
-# Get context for coding
-curl -X POST http://localhost:3001/api/context \
-  -H "Content-Type: application/json" \
-  -d '{"task": "implement user authentication", "language": "typescript"}'
+**Step 1: Install the Copilot Language Model API extension in VS Code**
+
+**Step 2: Add to your VS Code settings.json:**
+```json
+{
+  "github.copilot.chat.models": {
+    "olympus-docs": {
+      "type": "mcp",
+      "config": {
+        "command": "olympus-mcp",
+        "args": ["start", "--stdio"],
+        "env": {
+          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+          "MCP_MODE": "true"
+        }
+      }
+    }
+  }
+}
+```
+
+**Step 3: Restart VS Code**
+
+**Step 4: Use in Copilot Chat:**
+```
+@olympus-docs how do I authenticate with the API?
+@olympus-docs show me React hooks examples
+@olympus-docs what are Olympus Cloud best practices?
 ```
 
 ### Cursor IDE

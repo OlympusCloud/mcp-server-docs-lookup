@@ -55,8 +55,12 @@ const format = winston.format.combine(
   winston.format.json()
 );
 
+// Check if running as MCP server (stdio mode)
+const isMCPMode = process.argv.includes('--stdio') || process.env.MCP_MODE === 'true';
+
+// In MCP mode, redirect all console output to stderr to avoid interfering with stdio protocol
 const consoleFormat = winston.format.combine(
-  winston.format.colorize({ all: true }),
+  isMCPMode ? winston.format.uncolorize() : winston.format.colorize({ all: true }),
   winston.format.printf(
     (info) => `${info.timestamp} [${info.level}]: ${info.message}`
   )
@@ -68,7 +72,9 @@ export const logger = winston.createLogger({
   transports: [
     new winston.transports.Console({
       format: consoleFormat,
-      level: process.env.LOG_LEVEL || 'info',
+      level: process.env.LOG_LEVEL || (isMCPMode ? 'error' : 'info'),
+      silent: isMCPMode && process.env.MCP_DEBUG !== 'true',
+      stderrLevels: isMCPMode ? ['error', 'warn', 'info', 'debug'] : ['error', 'warn']
     }),
   ],
 });

@@ -33,6 +33,16 @@ export class MCPServer {
     try {
       const config = await this.configLoader.loadConfig();
       
+      // Initialize performance monitor first
+      this.performanceMonitor = new PerformanceMonitorService({
+        memoryWarning: 1024,
+        memoryCritical: 2048,
+        cpuWarning: 70,
+        cpuCritical: 90
+      }, 30000);
+
+      this.performanceMonitor.start();
+      
       this.vectorStore = new VectorStore(config.vectorStore!, 384, this.performanceMonitor);
       await this.vectorStore.initialize();
 
@@ -46,15 +56,6 @@ export class MCPServer {
         this.embeddingService,
         config.contextGeneration
       );
-
-      this.performanceMonitor = new PerformanceMonitorService({
-        memoryWarning: 1024,
-        memoryCritical: 2048,
-        cpuWarning: 70,
-        cpuCritical: 90
-      }, 30000);
-
-      this.performanceMonitor.start();
 
       this.documentProcessor = new DocumentProcessor(undefined, this.performanceMonitor);
 
@@ -70,23 +71,57 @@ export class MCPServer {
       });
 
       // Setup periodic memory cleanup
-      setInterval(() => {
-        if (global.gc) {
-          const memBefore = process.memoryUsage().heapUsed / 1024 / 1024;
-          global.gc();
-          const memAfter = process.memoryUsage().heapUsed / 1024 / 1024;
-          logger.info('Manual garbage collection performed', {
-            memoryBefore: `${memBefore.toFixed(2)}MB`,
-            memoryAfter: `${memAfter.toFixed(2)}MB`,
-            freed: `${(memBefore - memAfter).toFixed(2)}MB`
-          });
+      const memoryCleanupInterval = setInterval(() => {
+        try {
+          // Clear embedding cache
+          if (this.embeddingService) {
+            this.embeddingService.clearCache();
+          }
+          
+          // Force garbage collection if available
+          if (global.gc) {
+            const memBefore = process.memoryUsage().heapUsed / 1024 / 1024;
+            global.gc();
+            const memAfter = process.memoryUsage().heapUsed / 1024 / 1024;
+            
+            // Only log if significant memory was freed or in debug mode
+            if ((memBefore - memAfter) > 10 || process.env.MCP_DEBUG === 'true') {
+              logger.debug('Manual garbage collection performed', {
+                memoryBefore: `${memBefore.toFixed(2)}MB`,
+                memoryAfter: `${memAfter.toFixed(2)}MB`,
+                freed: `${(memBefore - memAfter).toFixed(2)}MB`
+              });
+            }
+          }
+          
+          // Check memory usage and trigger aggressive cleanup if needed
+          const memUsage = process.memoryUsage();
+          const heapPercentage = (memUsage.heapUsed / memUsage.heapTotal) * 100;
+          
+          if (heapPercentage > 80) {
+            logger.warn('High heap usage detected, triggering aggressive cleanup', {
+              heapPercentage: heapPercentage.toFixed(2),
+              heapUsed: `${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`,
+              heapTotal: `${(memUsage.heapTotal / 1024 / 1024).toFixed(2)}MB`
+            });
+            
+            // Clear all caches
+            if (this.embeddingService) {
+              this.embeddingService.clearCache();
+            }
+            
+            // Force immediate garbage collection
+            if (global.gc) {
+              global.gc();
+              global.gc(); // Run twice for thorough cleanup
+            }
+          }
+        } catch (error) {
+          logger.error('Error during memory cleanup', { error });
         }
-        
-        // Clear embedding cache periodically
-        if (this.embeddingService) {
-          (this.embeddingService as any).clearCache?.();
-        }
-      }, 300000).unref(); // Every 5 minutes
+      }, 300000); // Every 5 minutes
+      
+      memoryCleanupInterval.unref(); // Don't keep process alive
 
       this.initialized = true;
       logger.info('MCP Server initialized successfully');

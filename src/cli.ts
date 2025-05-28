@@ -425,8 +425,12 @@ program
           await server.start();
         } else {
           console.log('🚀 Starting MCP server...');
-          const mcpProcess = spawn('node', [path.join(__dirname, 'server.js'), '--stdio'], {
-            stdio: 'inherit'
+          const mcpProcess = spawn('node', ['--expose-gc', '--max-old-space-size=4096', path.join(__dirname, 'server.js'), '--stdio'], {
+            stdio: 'inherit',
+            env: {
+              ...process.env,
+              MCP_MODE: 'true'
+            }
           });
 
           mcpProcess.on('error', (error) => {
@@ -642,9 +646,60 @@ Or if installed globally:
         `);
         break;
 
+      case 'github-copilot':
+      case 'copilot':
+      case 'vscode':
+      case 'vs-code':
+        console.log('\n📋 GitHub Copilot (VS Code) Integration\n');
+        console.log('1. Install the Copilot Language Model API extension in VS Code');
+        console.log('2. Open VS Code settings (Cmd+, or Ctrl+,)');
+        console.log('3. Search for "GitHub Copilot > Language Models"');
+        console.log('4. Add to your settings.json:\n');
+        console.log(`{
+  "github.copilot.chat.models": {
+    "olympus-docs": {
+      "type": "mcp",
+      "config": {
+        "command": "olympus-mcp",
+        "args": ["start", "--stdio"],
+        "env": {
+          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+          "MCP_MODE": "true"
+        }
+      }
+    }
+  }
+}
+
+Or use the full path if not installed globally:
+
+{
+  "github.copilot.chat.models": {
+    "olympus-docs": {
+      "type": "mcp",
+      "config": {
+        "command": "${workspaceFolder}/node_modules/.bin/olympus-mcp",
+        "args": ["start", "--stdio"],
+        "env": {
+          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+          "MCP_MODE": "true"
+        }
+      }
+    }
+  }
+}
+        `);
+        console.log('\n5. Restart VS Code');
+        console.log('6. In Copilot Chat, you can now use @olympus-docs to query your documentation');
+        console.log('\nExample queries:');
+        console.log('  @olympus-docs how do I authenticate with the API?');
+        console.log('  @olympus-docs show me examples of using React hooks');
+        console.log('  @olympus-docs what are the Olympus Cloud best practices?');
+        break;
+
       default:
         console.log(`❌ Unknown platform: ${platform}`);
-        console.log('Supported platforms: claude-desktop, claude-code, cursor');
+        console.log('Supported platforms: claude-desktop, claude-code, cursor, github-copilot, vscode');
     }
   });
 
