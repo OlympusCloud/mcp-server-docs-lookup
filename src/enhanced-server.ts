@@ -854,7 +854,7 @@ export class EnhancedMCPServer {
   }
 
   private async handleExplainCodePrompt(args: any) {
-    const { code, language, includeExamples } = args;
+    const { code, language } = args;
     
     // Get relevant documentation context
     const contextQuery: ContextQuery = {

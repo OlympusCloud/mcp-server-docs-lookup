@@ -310,7 +310,7 @@ export class GenerateCodeTool implements Tool {
   }
 
   private generateTests(testParams: any): string {
-    const { code, language, framework, task } = testParams;
+    const { language, task, code: _code, framework: _framework } = testParams;
     let tests = '';
 
     if (language === 'javascript' || language === 'typescript') {
@@ -359,7 +359,7 @@ Generated using patterns from official documentation and best practices.
 
     // Find action verb
     const actionVerbs = ['create', 'get', 'set', 'update', 'delete', 'fetch', 'process', 'handle', 'validate'];
-    let verb = actionVerbs.find(v => words.includes(v)) || 'handle';
+    const verb = actionVerbs.find(v => words.includes(v)) || 'handle';
     
     // Find subject
     const subject = words.find(w => !actionVerbs.includes(w) && w.length > 3) || 'task';
