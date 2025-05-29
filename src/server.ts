@@ -10,7 +10,6 @@ import { PerformanceMonitorService } from './services/performance-monitor';
 import logger from './utils/logger';
 import { InputValidator, ValidationError } from './utils/validation';
 import { gracefulShutdown, createShutdownTasks } from './utils/graceful-shutdown';
-
 export class MCPServer {
   private configLoader: ConfigLoader;
   private gitSync: GitSyncService;
@@ -29,10 +28,8 @@ export class MCPServer {
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
-
     try {
       const config = await this.configLoader.loadConfig();
-      
       // Initialize performance monitor first
       this.performanceMonitor = new PerformanceMonitorService({
         memoryWarning: 1024,
@@ -177,7 +174,7 @@ export class MCPServer {
               description: 'Search query or task description'
             },
             language: {
-              type: 'string',
+              type: 'string', 
               description: 'Programming language filter (optional)'
             },
             framework: {
@@ -190,7 +187,7 @@ export class MCPServer {
               description: 'Filter by specific repositories (optional)'
             },
             maxResults: {
-              type: 'number',
+              type: 'integer',
               description: 'Maximum number of results (default: 20)'
             }
           },
@@ -216,7 +213,7 @@ export class MCPServer {
               description: 'Framework being used (optional)'
             },
             maxResults: {
-              type: 'number',
+              type: 'integer',
               description: 'Maximum number of context chunks (default: 20)'
             }
           },
@@ -257,23 +254,26 @@ export class MCPServer {
       switch (request.method) {
         case 'initialize':
           return {
+            jsonrpc: '2.0',
             id: request.id,
             result: {
               protocolVersion: '2024-11-05',
               capabilities: {
-                tools: {},
-                resources: {},
-                prompts: {}
+                tools: {
+                  listChanged: true
+                },
+                logging: {}
               },
               serverInfo: {
                 name: 'olympus-docs-mcp',
-                version: '1.0.0'
+                version: '1.0.4'
               }
             }
           };
 
         case 'tools/list':
           return {
+            jsonrpc: '2.0',
             id: request.id,
             result: { tools: this.getTools() }
           };
@@ -284,6 +284,7 @@ export class MCPServer {
 
         default:
           return {
+            jsonrpc: '2.0',
             id: request.id,
             error: {
               code: -32601,
@@ -294,6 +295,7 @@ export class MCPServer {
     } catch (error) {
       logger.error('Error handling MCP request', { method: request.method, error });
       return {
+        jsonrpc: '2.0',
         id: request.id,
         error: {
           code: -32603,
@@ -305,8 +307,7 @@ export class MCPServer {
   }
 
   private async invokeTool(request: MCPRequest): Promise<MCPResponse> {
-    const { name, arguments: args } = request.params || {};
-
+    const { name, arguments: args } = request.params ?? {};
     switch (name) {
       case 'search_docs':
         return await this.searchDocumentation(request.id, args);
@@ -322,6 +323,7 @@ export class MCPServer {
 
       default:
         return {
+          jsonrpc: '2.0',
           id: request.id,
           error: {
             code: -32602,
@@ -336,7 +338,7 @@ export class MCPServer {
       this.performanceMonitor.updateApplicationMetrics({ searchRequests: 1 });
       
       // Validate input
-      const validatedArgs = InputValidator.validateSearchDocs(args || {});
+      const validatedArgs = InputValidator.validateSearchDocs(args ?? {});
       
       const query: ContextQuery = {
         task: validatedArgs.query,
@@ -389,24 +391,20 @@ export class MCPServer {
   private async getContext(id: any, args: any): Promise<MCPResponse> {
     try {
       this.performanceMonitor.updateApplicationMetrics({ searchRequests: 1 });
-      
       // Validate input
-      const validatedArgs = InputValidator.validateGetContext(args || {});
-      
+      const validatedArgs = InputValidator.validateGetContext(args ?? {});
       const query: ContextQuery = {
         task: validatedArgs.task,
         language: validatedArgs.language,
         framework: validatedArgs.framework,
         maxResults: validatedArgs.maxResults
       };
-
       const result = await this.contextGenerator.generateContext(query);
-      
       // Format context as MCP-compliant content array
-      const contextText = result.content || 'No context found for your task.';
-      const metadata = `\n\n---\n\nTotal chunks: ${result.metadata.totalChunks}\nSources: ${(result.metadata.relevantRepositories || []).join(', ')}`;
-      
+      const contextText = result.content ?? 'No context found for your task.';
+      const metadata = `\n\n---\n\nTotal chunks: ${result.metadata.totalChunks}\nSources: ${(result.metadata.relevantRepositories ?? []).join(', ')}`;
       return {
+        jsonrpc: '2.0',
         id,
         result: {
           content: [
@@ -420,15 +418,17 @@ export class MCPServer {
     } catch (error) {
       if (error instanceof ValidationError) {
         return {
+          jsonrpc: '2.0',
           id,
           error: {
             code: -32602,
             message: 'Invalid parameters',
-            data: error.errors || error.message
+            data: error.errors ?? error.message
           }
         };
       }
       return {
+        jsonrpc: '2.0',
         id,
         error: {
           code: -32603,
@@ -448,6 +448,7 @@ export class MCPServer {
         const repo = config.repositories.find(r => r.name === args.repository);
         if (!repo) {
           return {
+            jsonrpc: '2.0',
             id,
             error: {
               code: -32602,
@@ -457,6 +458,7 @@ export class MCPServer {
         }
 
         return {
+          jsonrpc: '2.0',
           id,
           result: {
             content: [
@@ -471,12 +473,13 @@ export class MCPServer {
 
       // Format repository list as MCP-compliant content
       const repoList = config.repositories.map(repo => 
-        `- **${repo.name}** (${repo.url})\n  Branch: ${repo.branch}\n  Priority: ${repo.priority}\n  Sync Interval: ${repo.syncInterval || 'manual'}`
+        `- **${repo.name}** (${repo.url})\n  Branch: ${repo.branch}\n  Priority: ${repo.priority}\n  Sync Interval: ${repo.syncInterval ?? 'manual'}`
       ).join('\n');
       
-      const statsText = `\n\n**Stats:**\n- Total documents: ${stats.totalDocuments || 0}\n- Total chunks: ${stats.totalChunks || 0}`;
+      const statsText = `\n\n**Stats:**\n- Total documents: ${stats.totalDocuments ?? 0}\n- Total chunks: ${stats.totalChunks ?? 0}`;
       
       return {
+        jsonrpc: '2.0',
         id,
         result: {
           content: [
@@ -489,6 +492,7 @@ export class MCPServer {
       };
     } catch (error) {
       return {
+        jsonrpc: '2.0',
         id,
         error: {
           code: -32603,
@@ -502,13 +506,12 @@ export class MCPServer {
   private async syncRepository(id: any, args: any): Promise<MCPResponse> {
     try {
       // Validate input
-      const validatedArgs = InputValidator.validateSyncRepository(args || {});
-      
+      const validatedArgs = InputValidator.validateSyncRepository(args ?? {});
       const config = this.configLoader.getConfig();
       const repo = config.repositories.find(r => r.name === validatedArgs.repository);
-      
       if (!repo) {
         return {
+          jsonrpc: '2.0',
           id,
           error: {
             code: -32602,
@@ -516,10 +519,9 @@ export class MCPServer {
           }
         };
       }
-
       await this.gitSync.syncRepository(repo);
-
       return {
+        jsonrpc: '2.0',
         id,
         result: {
           content: [
@@ -532,6 +534,7 @@ export class MCPServer {
       };
     } catch (error) {
       return {
+        jsonrpc: '2.0',
         id,
         error: {
           code: -32603,
@@ -544,20 +547,38 @@ export class MCPServer {
 
   async start(): Promise<void> {
     await this.initialize();
-
+    // Ensure stdin is set to the right encoding
+    process.stdin.setEncoding('utf8');
+    
+    // Ensure the process doesn't exit on EOF
+    process.stdin.resume();
+    
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       terminal: false
     });
-
+    // Handle each line of input
     rl.on('line', async (line) => {
+      if (!line.trim()) {
+        console.log("DEBUG: Empty line received, ignoring");
+        return;
+      }
+      
       try {
         const request = JSON.parse(line) as MCPRequest;
+        
+        // Add request ID if missing (for robustness with some clients)
+        request.id ??= `auto-${Date.now()}`;
+        
         const response = await this.handleRequest(request);
-        console.log(JSON.stringify(response));
+        const responseJson = JSON.stringify(response);
+        console.log(responseJson);
       } catch (error) {
+        logger.error('Error processing line', { error, line: line.substring(0, 100) });
         const errorResponse: MCPResponse = {
+          jsonrpc: '2.0', // Add jsonrpc version to error responses too
+          id: null, // Use null for parse errors
           error: {
             code: -32700,
             message: 'Parse error',
@@ -566,6 +587,11 @@ export class MCPServer {
         };
         console.log(JSON.stringify(errorResponse));
       }
+    });
+    
+    // Handle errors on stdin
+    process.stdin.on('error', (error) => {
+      logger.error('Error on stdin', { error });
     });
 
     logger.info('MCP Server started and listening for requests');
@@ -592,7 +618,6 @@ if (require.main === module) {
   ));
 
   gracefulShutdown.setupSignalHandlers();
-
   server.start().catch(error => {
     logger.error('Failed to start MCP Server', { error });
     process.exit(1);

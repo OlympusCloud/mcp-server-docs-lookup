@@ -1,10 +1,14 @@
 # Olympus Cloud Documentation MCP Server Setup Script (PowerShell)
 # Sets up comprehensive documentation for Olympus Cloud development
 # Including Azure, .NET 9/10, NebusAI, and best practices
+# Enhanced for AI coding agents: Claude Code, GitHub Copilot, Cline, Continue
 
 param(
     [switch]$SkipSync,
-    [string]$Config = ""
+    [string]$Config = "",
+    [switch]$DevMode,
+    [switch]$SkipAISetup,
+    [string]$GitHubToken = $env:OLYMPUS_GITHUB_TOKEN
 )
 
 # Function to write colored output
@@ -50,6 +54,7 @@ function Test-Prerequisites {
     
     $missingDeps = @()
     
+    # Check Node.js
     if (-not (Test-Command "node")) {
         $missingDeps += "Node.js 18+"
     } else {
@@ -61,12 +66,14 @@ function Test-Prerequisites {
         }
     }
     
+    # Check npm
     if (-not (Test-Command "npm")) {
         $missingDeps += "npm"
     } else {
         Write-Status "npm $(npm --version)"
     }
     
+    # Check Docker
     if (-not (Test-Command "docker")) {
         $missingDeps += "Docker"
     } else {
@@ -74,11 +81,30 @@ function Test-Prerequisites {
         Write-Status "Docker $dockerVersion"
     }
     
+    # Check Git
     if (-not (Test-Command "git")) {
         $missingDeps += "Git"
     } else {
         $gitVersion = (git --version).Split(' ')[2]
         Write-Status "Git $gitVersion"
+    }
+    
+    # Check Azure CLI (optional for Olympus development)
+    if (Test-Command "az") {
+        Write-Status "Azure CLI $(az --version | Select-String 'azure-cli' | ForEach-Object { $_.ToString().Split()[1] })"
+    } else {
+        Write-Info "Azure CLI not found (optional - install for Azure development)"
+    }
+    
+    # Check .NET SDK (for Olympus development)
+    if (Test-Command "dotnet") {
+        $dotnetVersion = (dotnet --version)
+        Write-Status ".NET SDK $dotnetVersion"
+        if ([version]$dotnetVersion -lt [version]"8.0") {
+            Write-Warning ".NET 8.0+ recommended for Olympus development"
+        }
+    } else {
+        Write-Info ".NET SDK not found (install for Olympus .NET development)"
     }
     
     if ($missingDeps.Count -gt 0) {
@@ -93,6 +119,8 @@ function Test-Prerequisites {
         Write-Host "  Node.js: https://nodejs.org/"
         Write-Host "  Docker: https://docs.docker.com/get-docker/"
         Write-Host "  Git: https://git-scm.com/downloads"
+        Write-Host "  Azure CLI: https://docs.microsoft.com/cli/azure/install-azure-cli"
+        Write-Host "  .NET SDK: https://dotnet.microsoft.com/download"
         exit 1
     }
     
@@ -117,7 +145,14 @@ function Initialize-MCPServer {
         exit 1
     }
     
-    Write-Status "MCP server built successfully"
+    # Verify modular server is built
+    if (-not (Test-Path "dist/modular-server.js")) {
+        Write-Warning "Modular server not found, using fallback server"
+    } else {
+        Write-Status "Modular MCP server built successfully"
+    }
+    
+    Write-Status "MCP server setup completed"
 }
 
 # Start Qdrant vector database
@@ -126,7 +161,7 @@ function Initialize-Qdrant {
     
     # Check if Qdrant is already running
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:6333/" -TimeoutSec 5 -ErrorAction Stop
+        Invoke-WebRequest -Uri "http://localhost:6333/health" -TimeoutSec 5 -ErrorAction Stop | Out-Null
         Write-Status "Qdrant is already running"
         return
     } catch {
@@ -140,7 +175,7 @@ function Initialize-Qdrant {
         docker start qdrant
     } else {
         Write-Info "Creating and starting new Qdrant container..."
-        docker run -d --name qdrant -p 6333:6333 qdrant/qdrant
+        docker run -d --name qdrant -p 6333:6333 -v "${PWD}/qdrant_storage:/qdrant/storage" qdrant/qdrant
     }
     
     # Wait for Qdrant to be ready
@@ -150,7 +185,7 @@ function Initialize-Qdrant {
     
     while ($attempt -le $maxAttempts) {
         try {
-            $response = Invoke-WebRequest -Uri "http://localhost:6333/" -TimeoutSec 5 -ErrorAction Stop
+            Invoke-WebRequest -Uri "http://localhost:6333/health" -TimeoutSec 5 -ErrorAction Stop | Out-Null
             Write-Status "Qdrant is ready"
             return
         } catch {
@@ -376,8 +411,20 @@ function Test-Installation {
 function Set-ClaudeDesktopConfig {
     Write-Header "Configuring Claude Desktop"
     
+    if ($SkipAISetup) {
+        Write-Info "Skipping AI agent setup (--SkipAISetup parameter provided)"
+        return
+    }
+    
     # Find Claude Desktop config file
-    $claudeConfigDir = "$env:USERPROFILE\.claude_config"
+    $claudeConfigDir = "$env:APPDATA\Claude"
+    if (-not (Test-Path $claudeConfigDir)) {
+        $claudeConfigDir = "$env:USERPROFILE\AppData\Roaming\Claude"
+    }
+    if (-not (Test-Path $claudeConfigDir)) {
+        $claudeConfigDir = "$env:USERPROFILE\.claude"
+    }
+    
     $claudeConfigFile = Join-Path $claudeConfigDir "claude_desktop_config.json"
     
     if (-not (Test-Path $claudeConfigDir)) {
@@ -385,14 +432,24 @@ function Set-ClaudeDesktopConfig {
         New-Item -ItemType Directory -Path $claudeConfigDir -Force | Out-Null
     }
     
+    # Determine which server to use
+    $serverScript = "dist/server.js"
+    if (Test-Path "dist/modular-server.js") {
+        $serverScript = "dist/modular-server.js"
+        Write-Info "Using modular MCP server"
+    } else {
+        Write-Warning "Modular server not found, using fallback server"
+    }
+    
     # Create MCP server configuration
     $currentPath = (Get-Location).Path.Replace('\', '/')
     $mcpConfig = @{
         command = "node"
-        args = @("$currentPath/dist/server.js", "--stdio")
+        args = @("$currentPath/$serverScript")
         cwd = $currentPath
         env = @{
             MCP_CONFIG_PATH = "$currentPath/config/config.json"
+            NODE_ENV = if ($DevMode) { "development" } else { "production" }
         }
     }
     
@@ -400,7 +457,7 @@ function Set-ClaudeDesktopConfig {
         Write-Info "Updating existing Claude Desktop configuration..."
         
         # Backup existing config
-        Copy-Item $claudeConfigFile "$claudeConfigFile.backup"
+        Copy-Item $claudeConfigFile "$claudeConfigFile.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
         
         try {
             # Load existing config
@@ -431,10 +488,261 @@ function Set-ClaudeDesktopConfig {
         }
         
         $newConfig | ConvertTo-Json -Depth 10 | Set-Content $claudeConfigFile
-        Write-Status "Claude Desktop configuration created"
+        Write-Status "Claude Desktop configuration created at: $claudeConfigFile"
     }
     
     Write-Info "Claude Desktop will need to be restarted to load the MCP server"
+}
+
+# Configure VS Code extensions (Cline, Continue, etc.)
+function Set-VSCodeExtensionConfig {
+    Write-Header "Configuring VS Code Extensions"
+    
+    if ($SkipAISetup) {
+        Write-Info "Skipping VS Code extension setup"
+        return
+    }
+    
+    # Find VS Code settings
+    $vscodeConfigDirs = @(
+        "$env:APPDATA\Code\User",
+        "$env:APPDATA\Code - Insiders\User",
+        "$env:USERPROFILE\.vscode",
+        "$env:USERPROFILE\AppData\Roaming\Code\User"
+    )
+    
+    $vscodeSettings = $null
+    foreach ($dir in $vscodeConfigDirs) {
+        $settingsFile = Join-Path $dir "settings.json"
+        if (Test-Path $settingsFile) {
+            $vscodeSettings = $settingsFile
+            break
+        }
+    }
+    
+    if (-not $vscodeSettings) {
+        # Create default VS Code settings
+        $defaultDir = "$env:APPDATA\Code\User"
+        New-Item -ItemType Directory -Path $defaultDir -Force | Out-Null
+        $vscodeSettings = Join-Path $defaultDir "settings.json"
+    }
+    
+    # Determine which server to use
+    $serverScript = "dist/server.js"
+    if (Test-Path "dist/modular-server.js") {
+        $serverScript = "dist/modular-server.js"
+    }
+    
+    $currentPath = (Get-Location).Path.Replace('\', '/')
+    
+    # Create configuration for extensions
+    $clineConfig = @{
+        mcpServers = @{
+            "olympus-docs" = @{
+                command = "node"
+                args = @("$currentPath/$serverScript")
+                cwd = $currentPath
+                env = @{
+                    MCP_CONFIG_PATH = "$currentPath/config/config.json"
+                }
+            }
+        }
+    }
+    
+    try {
+        if (Test-Path $vscodeSettings) {
+            # Backup existing settings
+            Copy-Item $vscodeSettings "$vscodeSettings.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+            
+            # Load existing settings
+            $settings = Get-Content $vscodeSettings | ConvertFrom-Json
+        } else {
+            $settings = @{}
+        }
+        
+        # Add Cline configuration
+        $settings | Add-Member -MemberType NoteProperty -Name "cline.mcpServers" -Value $clineConfig.mcpServers -Force
+        
+        # Add Continue configuration
+        $settings | Add-Member -MemberType NoteProperty -Name "continue.mcpServers" -Value $clineConfig.mcpServers -Force
+        
+        # Save updated settings
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $vscodeSettings
+        Write-Status "VS Code extension configuration updated: $vscodeSettings"
+        
+    } catch {
+        Write-Warning "Failed to update VS Code settings: $($_.Exception.Message)"
+        Write-Info "Please manually configure Cline/Continue extensions"
+    }
+}
+
+# Setup GitHub Copilot API integration
+function Set-GitHubCopilotAPI {
+    Write-Header "Setting Up GitHub Copilot API Integration"
+    
+    if ($SkipAISetup) {
+        Write-Info "Skipping GitHub Copilot API setup"
+        return
+    }
+    
+    # Create API service configuration
+    $apiConfig = @{
+        server = @{
+            port = 3000
+            host = "localhost"
+            cors = @{
+                enabled = $true
+                origins = @("http://localhost:*", "vscode://")
+            }
+        }
+        project = @{
+            name = "olympus-cloud-api"
+            description = "API server for GitHub Copilot integration"
+        }
+        repositories = @()
+        mode = "api"
+    }
+    
+    $apiConfig | ConvertTo-Json -Depth 10 | Set-Content "config/api-config.json"
+    
+    # Load the config
+    Copy-Item -Path "config/api-config.json" -Destination "config/config.json" -Force
+    
+    Write-Info "Starting Olympus Docs API server for GitHub Copilot..."
+    
+    # Function to start API server in background
+    function Start-APIServer {
+        $logDir = "logs"
+        if (-not (Test-Path $logDir)) {
+            New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+        }
+        
+        $logFile = Join-Path $logDir "api-server.log"
+        
+        Write-Host "Starting API server at http://localhost:3000..."
+        
+        # Start the API server process
+        $apiProcess = Start-Process -FilePath "node" -ArgumentList @(
+            "dist/cli.js", "start", "--mode", "api"
+        ) -RedirectStandardOutput $logFile -RedirectStandardError $logFile -NoNewWindow -PassThru
+        
+        $apiProcess.Id | Set-Content ".api-server.pid"
+        
+        # Wait for server to start
+        $maxAttempts = 15
+        $attempt = 1
+        
+        while ($attempt -le $maxAttempts) {
+            try {
+                $response = Invoke-WebRequest -Uri "http://localhost:3000/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+                if ($response.StatusCode -eq 200) {
+                    Write-Status "API server started successfully (PID: $($apiProcess.Id))"
+                    Write-Info "API server logs: Get-Content $logFile -Wait"
+                    return $true
+                }
+            }
+            catch {
+                # Continue waiting
+            }
+            
+            Write-Host "." -NoNewline
+            Start-Sleep -Seconds 2
+            $attempt++
+        }
+        
+        Write-Error "API server failed to start after $maxAttempts attempts"
+        Write-Info "Check logs: Get-Content $logFile"
+        return $false
+    }
+    
+    # Check if API server is already running
+    try {
+        $response = Invoke-WebRequest -Uri "http://localhost:3000/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        if ($response.StatusCode -eq 200) {
+            Write-Status "API server is already running"
+        }
+        else {
+            Start-APIServer | Out-Null
+        }
+    }
+    catch {
+        Start-APIServer | Out-Null
+    }
+    
+    Write-Status "GitHub Copilot API configuration completed"
+    Write-Info "API endpoints available at http://localhost:3000"
+}
+
+# Test MCP server integration
+function Test-MCPIntegration {
+    Write-Header "Testing MCP Server Integration"
+    
+    # Determine which server to test
+    $serverScript = "dist/server.js"
+    if (Test-Path "dist/modular-server.js") {
+        $serverScript = "dist/modular-server.js"
+        Write-Info "Testing modular MCP server"
+    }
+    
+    # Test MCP protocol
+    Write-Info "Testing MCP protocol communication..."
+    $testJson = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
+    
+    try {
+        $timeout = 10
+        $job = Start-Job -ScriptBlock { 
+            param($path, $script, $json)
+            Set-Location $path
+            Write-Output $json | node $script
+        } -ArgumentList (Get-Location).Path, $serverScript, $testJson
+        
+        if (Wait-Job $job -Timeout $timeout) {
+            $result = Receive-Job $job
+            Remove-Job $job
+            
+            if ($result -match '"result"') {
+                Write-Status "MCP protocol test passed"
+            } else {
+                Write-Warning "MCP protocol test returned unexpected response"
+            }
+        } else {
+            Remove-Job $job -Force
+            Write-Warning "MCP protocol test timed out"
+        }
+    } catch {
+        Write-Warning "MCP protocol test failed: $($_.Exception.Message)"
+    }
+    
+    # Test tool listing
+    Write-Info "Testing tool listing..."
+    $toolsJson = '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+    
+    try {
+        $timeout = 10
+        $job = Start-Job -ScriptBlock { 
+            param($path, $script, $json)
+            Set-Location $path
+            Write-Output $json | node $script
+        } -ArgumentList (Get-Location).Path, $serverScript, $toolsJson
+        
+        if (Wait-Job $job -Timeout $timeout) {
+            $result = Receive-Job $job
+            Remove-Job $job
+            
+            if ($result -match '"tools"') {
+                Write-Status "Tool listing test passed"
+            } else {
+                Write-Warning "Tool listing test returned unexpected response"
+            }
+        } else {
+            Remove-Job $job -Force
+            Write-Warning "Tool listing test timed out"
+        }
+    } catch {
+        Write-Warning "Tool listing test failed: $($_.Exception.Message)"
+    }
+    
+    Write-Status "MCP integration tests completed"
 }
 
 # Start MCP server in background
@@ -484,8 +792,8 @@ function Start-MCPServerBackground {
             Start-Job -ScriptBlock {
                 param($proc)
                 $output = $proc.StandardOutput.ReadToEnd()
-                $error = $proc.StandardError.ReadToEnd()
-                "$output`n$error" | Out-File "logs/mcp-server.log"
+                $errorOutput = $proc.StandardError.ReadToEnd()
+                "$output`n$errorOutput" | Out-File "logs/mcp-server.log"
             } -ArgumentList $process | Out-Null
         }
         else {
@@ -553,15 +861,15 @@ function Show-IntegrationInstructions {
     Write-Host "Start API server for GitHub Copilot integration:"
     Write-Host "  node dist/cli.js start --mode api --port 3001"
     Write-Host "Then use the REST API endpoints in your IDE:"
-    Write-Host "  POST http://localhost:3001/search - Search documentation"
-    Write-Host "  GET  http://localhost:3001/context - Get contextual help"
+    Write-Host "  POST http://localhost:3000/api/search - Search documentation"
+    Write-Host "  GET  http://localhost:3000/api/context - Get contextual help"
     Write-Host ""
     
     Write-Host "🔧 Amazon Q (CodeWhisperer) Integration:" -ForegroundColor Blue
     Write-Host "Use API mode for Amazon Q integration:"
     Write-Host "1. Start API server: node dist/cli.js start --mode api --port 3001"
     Write-Host "2. Configure Q to use documentation API via REST calls"
-    Write-Host "3. API endpoints available at http://localhost:3001/"
+    Write-Host "3. API endpoints available at http://localhost:3000/"
     Write-Host ""
     
     Write-Host "📝 Configuration Files Created:" -ForegroundColor Blue
@@ -618,12 +926,13 @@ function Show-IntegrationInstructions {
 # Main function
 function Main {
     Write-Header "Olympus Cloud Documentation MCP Server Setup"
-    Write-Info "This script will set up comprehensive documentation for:"
-    Write-Info "  • Azure cloud services and architecture patterns"
-    Write-Info "  • .NET 9/10 and ASP.NET Core best practices"
-    Write-Info "  • NebusAI and machine learning frameworks"
-    Write-Info "  • Security benchmarks and compliance"
-    Write-Info "  • Enterprise architecture patterns"
+    Write-Info "Enhanced setup for AI coding agents and Olympus Cloud development"
+    Write-Info "This script will configure:"
+    Write-Info "  • Modular MCP Server with enhanced architecture"
+    Write-Info "  • Claude Desktop integration"
+    Write-Info "  • VS Code extensions (Cline, Continue)"
+    Write-Info "  • GitHub Copilot API integration"
+    Write-Info "  • Azure, .NET 9/10, and enterprise documentation"
     Write-Host ""
     
     # Check if we're in the right directory
@@ -639,11 +948,19 @@ function Main {
         exit 1
     }
     
+    # Setup GitHub token if provided
+    if ($GitHubToken) {
+        $env:OLYMPUS_GITHUB_TOKEN = $GitHubToken
+        Write-Info "GitHub token configured for private repository access"
+    }
+    
+    # Core setup steps
     Test-Prerequisites
     Initialize-MCPServer
     Initialize-Qdrant
     Set-Configuration
     
+    # Documentation sync
     if (-not $SkipSync) {
         Write-Host ""
         $syncNow = Read-Host "Would you like to sync documentation now? This will take 10-30 minutes (y/N)"
@@ -655,12 +972,19 @@ function Main {
         }
     }
     
+    # Test core functionality
     Test-Installation
     
-    # Configure Claude Desktop automatically
-    Set-ClaudeDesktopConfig
+    # AI agent integrations
+    if (-not $SkipAISetup) {
+        Write-Header "Configuring AI Coding Agents"
+        Set-ClaudeDesktopConfig
+        Set-VSCodeExtensionConfig
+        Set-GitHubCopilotAPI
+        Test-MCPIntegration
+    }
     
-    # Ask if user wants to start the MCP server
+    # Start server if requested
     Write-Host ""
     $startServer = Read-Host "Would you like to start the MCP server now? (Y/n)"
     
@@ -671,18 +995,27 @@ function Main {
     Show-IntegrationInstructions
     
     Write-Header "Setup Complete! 🎉"
-    Write-Status "Olympus Cloud Documentation MCP Server is ready"
-    Write-Info "Start using it with your AI coding assistant!"
+    Write-Status "Olympus Cloud Documentation MCP Server is ready for AI coding agents"
     
     # Show next steps
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Green
-    Write-Host "1. Integrate with Claude Code using the configuration above"
-    Write-Host "2. Or start API server: node dist/cli.js start --mode api --port 3001"
-    Write-Host "3. Test search: node dist/cli.js search `"Azure Functions best practices`""
-    Write-Host "4. Read integration guides in docs/ folder"
+    Write-Host "1. Restart Claude Desktop to load the MCP server" -ForegroundColor Green
+    Write-Host "2. Install Cline or Continue extension in VS Code" -ForegroundColor Green
+    Write-Host "3. Access the API server at http://localhost:3000/health" -ForegroundColor Green
+    Write-Host "4. Test search: node dist/cli.js search `"Azure Functions best practices`"" -ForegroundColor Green
+    Write-Host "5. Read integration guides in docs/ folder" -ForegroundColor Green
+    
+    if ($DevMode) {
+        Write-Host ""
+        Write-Host "Development mode features enabled:" -ForegroundColor Cyan
+        Write-Host "  • Enhanced logging and debugging" -ForegroundColor Cyan
+        Write-Host "  • Hot reload for configuration changes" -ForegroundColor Cyan
+        Write-Host "  • Additional development tools" -ForegroundColor Cyan
+    }
+    
     Write-Host ""
-    Write-Host "Happy coding with enhanced documentation context! 🚀"
+    Write-Host "Happy coding with enhanced AI documentation context! 🚀" -ForegroundColor Green
 }
 
 # Run main function

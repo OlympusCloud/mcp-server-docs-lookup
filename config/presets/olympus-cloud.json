@@ -1,74 +1,169 @@
 {
+  "project": {
+    "name": "olympus-cloud-mcp-server",
+    "description": "MCP Server for AI coding assistants with TypeScript, Express.js, Qdrant, and local embeddings",
+    "version": "1.0.3"
+  },
   "repositories": [
     {
-      "name": "olympus-architecture",
-      "url": "https://github.com/YOUR-ORG/olympus-architecture.git",
+      "name": "mcp-server-docs-lookup",
+      "url": "https://github.com/OlympusCloud/mcp-server-docs-lookup.git",
       "branch": "main",
-      "authType": "token",
-      "paths": ["/docs", "/specifications", "/patterns"],
+      "authType": "none",
+      "paths": ["/docs", "/examples", "/config", "/src"],
+      "exclude": ["node_modules", "dist", "logs", "*.log"],
+      "syncInterval": 30,
       "priority": "high",
-      "category": "architecture",
+      "category": "mcp-server",
       "metadata": {
-        "type": "core-architecture",
+        "type": "olympus-mcp-server",
         "audience": "developers",
-        "note": "Replace with your actual Olympus Cloud repository URLs"
+        "framework": "typescript",
+        "technologies": ["typescript", "express", "qdrant", "mcp", "nodejs"]
       }
     },
     {
-      "name": "hub-templates",
-      "url": "https://github.com/YOUR-ORG/hub-templates.git",
+      "name": "typescript-docs",
+      "url": "https://github.com/microsoft/TypeScript.git",
       "branch": "main",
-      "authType": "token",
-      "paths": ["/templates", "/examples"],
+      "authType": "none",
+      "paths": ["/doc", "/docs"],
+      "exclude": ["tests", "*.test.*", "node_modules"],
+      "syncInterval": 720,
       "priority": "high",
-      "category": "implementation",
+      "category": "language",
       "metadata": {
-        "type": "hub-templates",
+        "type": "typescript-reference",
         "audience": "developers",
-        "note": "Replace with your actual Olympus Cloud repository URLs"
+        "framework": "typescript"
       }
     },
     {
-      "name": "api-standards",
-      "url": "https://github.com/YOUR-ORG/api-standards.git",
-      "branch": "main",
-      "authType": "token",
-      "paths": ["/standards", "/guidelines", "/openapi"],
+      "name": "express-docs",
+      "url": "https://github.com/expressjs/expressjs.com.git",
+      "branch": "gh-pages",
+      "authType": "none",
+      "paths": ["/en/4x", "/en/guide", "/en/api"],
+      "exclude": ["node_modules", "*.png", "*.jpg"],
+      "syncInterval": 1440,
       "priority": "high",
-      "category": "api",
+      "category": "web-framework",
       "metadata": {
-        "type": "api-design",
+        "type": "express-framework",
         "audience": "developers",
-        "note": "Replace with your actual Olympus Cloud repository URLs"
+        "framework": "express"
       }
     },
     {
-      "name": "deployment-patterns",
-      "url": "https://github.com/YOUR-ORG/deployment-patterns.git",
+      "name": "qdrant-docs",
+      "url": "https://github.com/qdrant/qdrant.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/docs"],
+      "exclude": ["target", "*.rs", "Cargo.*"],
+      "syncInterval": 1440,
+      "priority": "high",
+      "category": "vector-database",
+      "metadata": {
+        "type": "qdrant-vector-db",
+        "audience": "developers",
+        "framework": "qdrant"
+      }
+    },
+    {
+      "name": "mcp-specification",
+      "url": "https://github.com/modelcontextprotocol/specification.git",
       "branch": "main",
-      "authType": "token",
-      "paths": ["/kubernetes", "/terraform", "/ci-cd"],
+      "authType": "none",
+      "paths": ["/docs", "/schema", "/examples"],
+      "exclude": ["node_modules", "*.png"],
+      "syncInterval": 1440,
+      "priority": "high",
+      "category": "protocol",
+      "metadata": {
+        "type": "mcp-protocol",
+        "audience": "developers",
+        "framework": "mcp"
+      }
+    },
+    {
+      "name": "nodejs-best-practices",
+      "url": "https://github.com/goldbergyoni/nodebestpractices.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/sections"],
+      "exclude": ["assets", "*.png", "*.jpg"],
+      "syncInterval": 2880,
       "priority": "medium",
-      "category": "deployment",
+      "category": "best-practices",
       "metadata": {
-        "type": "infrastructure",
-        "audience": "devops",
-        "note": "Replace with your actual Olympus Cloud repository URLs"
+        "type": "nodejs-practices",
+        "audience": "developers",
+        "framework": "nodejs"
       }
     },
     {
-      "name": "security-guidelines",
-      "url": "https://github.com/YOUR-ORG/security-guidelines.git",
+      "name": "docker-docs",
+      "url": "https://github.com/docker/docs.git",
       "branch": "main",
-      "authType": "token",
-      "paths": ["/policies", "/best-practices", "/compliance"],
-      "priority": "high",
-      "category": "security",
+      "authType": "none",
+      "paths": ["/content/compose", "/content/engine", "/content/build"],
+      "exclude": ["*.png", "*.jpg", "*.gif"],
+      "syncInterval": 2880,
+      "priority": "medium",
+      "category": "containerization",
       "metadata": {
-        "type": "security",
-        "audience": "all",
-        "note": "Replace with your actual Olympus Cloud repository URLs"
+        "type": "docker-containerization",
+        "audience": "developers",
+        "framework": "docker"
+      }
+    },
+    {
+      "name": "winston-docs",
+      "url": "https://github.com/winstonjs/winston.git",
+      "branch": "master",
+      "authType": "none",
+      "paths": ["/docs", "/README.md"],
+      "exclude": ["test", "node_modules"],
+      "syncInterval": 4320,
+      "priority": "low",
+      "category": "logging",
+      "metadata": {
+        "type": "winston-logging",
+        "audience": "developers",
+        "framework": "winston"
       }
     }
-  ]
+  ],
+  "contextGeneration": {
+    "strategies": ["hybrid"],
+    "maxChunks": 25,
+    "priorityWeighting": {
+      "high": 2.0,
+      "medium": 1.0,
+      "low": 0.5
+    }
+  },
+  "server": {
+    "port": 3001,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "http://127.0.0.1:*"]
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "olympus-mcp-docs"
+    }
+  },
+  "features": {
+    "codeValidation": true,
+    "progressiveContext": true,
+    "performanceMonitoring": true,
+    "memoryManagement": true,
+    "circuitBreaker": true
+  }
 }

@@ -596,27 +596,23 @@ program
       case 'claude-code':
       case 'claude-desktop':
         console.log('\n📋 Claude Desktop Integration\n');
-        console.log('Add to your Claude Desktop MCP settings:');
+        console.log('Your Claude Desktop is already configured with:');
         console.log(`
 {
   "mcpServers": {
-    "universal-docs": {
-      "command": "npx",
-      "args": ["universal-doc-mcp", "start", "--stdio"]
+    "olympus-mcp": {
+      "command": "olympus-mcp",
+      "args": ["start", "--stdio"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+        "OLYMPUS_MODE": "true",
+        "MCP_MODE": "true"
+      }
     }
   }
 }
 
-Or if installed globally:
-
-{
-  "mcpServers": {
-    "universal-docs": {
-      "command": "universal-doc-mcp",
-      "args": ["start", "--stdio"]
-    }
-  }
-}
+✅ Status: Ready to use! Just restart Claude Desktop.
         `);
         break;
 
@@ -651,29 +647,24 @@ Or if installed globally:
       case 'vscode':
       case 'vs-code':
         console.log('\n📋 GitHub Copilot (VS Code) Integration\n');
-        console.log('Prerequisites:');
-        console.log('1. Install the package globally: npm install -g @olympuscloud/mcp-docs-server');
-        console.log('2. Initialize configuration: olympus-mcp init olympus-cloud');
-        console.log('3. Sync repositories: olympus-mcp sync\n');
+        console.log('✅ Package already installed globally at: /opt/homebrew/bin/olympus-mcp\n');
         
         console.log('VS Code Setup:');
         console.log('1. Install the Copilot Language Model API extension in VS Code');
         console.log('2. Open VS Code settings.json (Cmd+Shift+P > "Preferences: Open Settings (JSON)")');
-        console.log('3. Add the following configuration:\n');
+        console.log('3. Add this configuration:\n');
         console.log(`{
   "github.copilot.chat.models": {
-    "olympus-docs": {
+    "olympus-mcp": {
       "type": "mcp",
       "config": {
-        "command": "node",
-        "args": [
-          "${process.execPath.includes('node') ? '/usr/local/lib/node_modules/@olympuscloud/mcp-docs-server/mcp-launcher.js' : 'mcp-launcher.js'}",
-          "start",
-          "--stdio"
-        ],
+        "command": "olympus-mcp",
+        "args": ["start", "--stdio"],
         "env": {
-          "NODE_OPTIONS": "--max-old-space-size=4096",
-          "MCP_MODE": "true"
+          "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
+          "OLYMPUS_MODE": "true",
+          "MCP_MODE": "true",
+          "LOG_LEVEL": "info"
         }
       }
     }

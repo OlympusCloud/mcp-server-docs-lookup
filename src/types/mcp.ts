@@ -5,9 +5,10 @@ export interface MCPRequest {
 }
 
 export interface MCPResponse {
+  jsonrpc?: '2.0';
   result?: any;
   error?: MCPError;
-  id?: string | number;
+  id?: string | number | null;
 }
 
 export interface MCPError {
@@ -23,6 +24,7 @@ export interface MCPTool {
     type: 'object';
     properties: Record<string, any>;
     required?: string[];
+    additionalProperties?: boolean; // Added this line back
   };
 }
 

@@ -2,9 +2,56 @@
 
 # Olympus Cloud Documentation MCP Server Setup Script
 # Sets up comprehensive documentation for Olympus Cloud development
-# Auto-configures Claude Code and GitHub Copilot integration
+# Enhanced for AI coding agents: Claude Code, GitHub Copilot, Cline, Continue
 
 set -e  # Exit on any error
+
+# Parse command line arguments
+SKIP_SYNC=false
+SKIP_AI_SETUP=false
+DEV_MODE=false
+CONFIG=""
+GITHUB_TOKEN="${OLYMPUS_GITHUB_TOKEN:-}"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-sync)
+            SKIP_SYNC=true
+            shift
+            ;;
+        --skip-ai-setup)
+            SKIP_AI_SETUP=true
+            shift
+            ;;
+        --dev-mode)
+            DEV_MODE=true
+            shift
+            ;;
+        --config)
+            CONFIG="$2"
+            shift 2
+            ;;
+        --github-token)
+            GITHUB_TOKEN="$2"
+            shift 2
+            ;;
+        -h|--help)
+            echo "Usage: $0 [options]"
+            echo "Options:"
+            echo "  --skip-sync       Skip documentation synchronization"
+            echo "  --skip-ai-setup   Skip AI agent configuration"
+            echo "  --dev-mode        Enable development mode features"
+            echo "  --config NAME     Use specific configuration preset"
+            echo "  --github-token    GitHub token for private repositories"
+            echo "  -h, --help        Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option $1"
+            exit 1
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'
@@ -50,6 +97,7 @@ check_prerequisites() {
     
     local missing_deps=()
     
+    # Check Node.js
     if ! command_exists node; then
         missing_deps+=("Node.js 18+")
     else
@@ -61,22 +109,50 @@ check_prerequisites() {
         fi
     fi
     
+    # Check npm
     if ! command_exists npm; then
         missing_deps+=("npm")
     else
         print_status "npm $(npm --version)"
     fi
     
+    # Check Docker
     if ! command_exists docker; then
         missing_deps+=("Docker")
     else
         print_status "Docker $(docker --version | cut -d' ' -f3 | cut -d',' -f1)"
     fi
     
+    # Check Git
     if ! command_exists git; then
         missing_deps+=("Git")
     else
         print_status "Git $(git --version | cut -d' ' -f3)"
+    fi
+    
+    # Check Azure CLI (optional for Olympus development)
+    if command_exists az; then
+        print_status "Azure CLI $(az --version | grep 'azure-cli' | awk '{print $2}')"
+    else
+        print_info "Azure CLI not found (optional - install for Azure development)"
+    fi
+    
+    # Check .NET SDK (for Olympus development)
+    if command_exists dotnet; then
+        DOTNET_VERSION=$(dotnet --version)
+        print_status ".NET SDK $DOTNET_VERSION"
+        if [[ $(echo "$DOTNET_VERSION" | cut -d'.' -f1) -lt 8 ]]; then
+            print_warning ".NET 8.0+ recommended for Olympus development"
+        fi
+    else
+        print_info ".NET SDK not found (install for Olympus .NET development)"
+    fi
+    
+    # Check jq (helpful for configuration)
+    if command_exists jq; then
+        print_status "jq $(jq --version)"
+    else
+        print_info "jq not found (install for better JSON configuration handling)"
     fi
     
     if [ ${#missing_deps[@]} -ne 0 ]; then
@@ -91,6 +167,9 @@ check_prerequisites() {
         echo "  Node.js: https://nodejs.org/"
         echo "  Docker: https://docs.docker.com/get-docker/"
         echo "  Git: https://git-scm.com/downloads"
+        echo "  Azure CLI: https://docs.microsoft.com/cli/azure/install-azure-cli"
+        echo "  .NET SDK: https://dotnet.microsoft.com/download"
+        echo "  jq: https://stedolan.github.io/jq/download/"
         exit 1
     fi
     
@@ -107,7 +186,14 @@ setup_mcp_server() {
     print_info "Building TypeScript..."
     npm run build
     
-    print_status "MCP server built successfully"
+    # Verify modular server is built
+    if [ ! -f "dist/modular-server.js" ]; then
+        print_warning "Modular server not found, using fallback server"
+    else
+        print_status "Modular MCP server built successfully"
+    fi
+    
+    print_status "MCP server setup completed"
 }
 
 # Start Qdrant vector database
@@ -374,6 +460,77 @@ EOF
     print_info "Restart Claude Code to load the MCP server"
 }
 
+# Configure Claude Code automatically (Enhanced)
+configure_claude_code_enhanced() {
+    print_header "Configuring Claude Desktop"
+    
+    if [ "$SKIP_AI_SETUP" = true ]; then
+        print_info "Skipping AI agent setup (--skip-ai-setup flag provided)"
+        return 0
+    fi
+    
+    # Detect Claude Code config location based on OS
+    local claude_config_dir
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        claude_config_dir="$HOME/Library/Application Support/Claude"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        claude_config_dir="$HOME/.config/claude"
+    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+        claude_config_dir="$APPDATA/Claude"
+    else
+        claude_config_dir="$HOME/.claude"
+    fi
+    
+    # Create config directory if it doesn't exist
+    mkdir -p "$claude_config_dir"
+    
+    # Determine which server to use
+    local server_script="dist/server.js"
+    if [ -f "dist/modular-server.js" ]; then
+        server_script="dist/modular-server.js"
+        print_info "Using modular MCP server"
+    else
+        print_warning "Modular server not found, using fallback server"
+    fi
+    
+    # Create MCP configuration
+    local mcp_config_file="$claude_config_dir/claude_desktop_config.json"
+    local current_path="$(pwd)"
+    
+    # Check if config exists and backup
+    if [ -f "$mcp_config_file" ]; then
+        cp "$mcp_config_file" "$mcp_config_file.backup.$(date +%Y%m%d_%H%M%S)"
+        print_info "Backed up existing configuration"
+    fi
+    
+    # Create new configuration
+    local env_config=""
+    if [ "$DEV_MODE" = true ]; then
+        env_config='"NODE_ENV": "development",'
+    else
+        env_config='"NODE_ENV": "production",'
+    fi
+    
+    cat > "$mcp_config_file" << EOF
+{
+  "mcpServers": {
+    "olympus-docs": {
+      "command": "node",
+      "args": ["$current_path/$server_script"],
+      "cwd": "$current_path",
+      "env": {
+        $env_config
+        "MCP_CONFIG_PATH": "$current_path/config/config.json"
+      }
+    }
+  }
+}
+EOF
+    
+    print_status "Claude Desktop configuration created at: $mcp_config_file"
+    print_info "Restart Claude Desktop to load the MCP server"
+}
+
 # Configure GitHub Copilot
 configure_github_copilot() {
     print_header "Configuring GitHub Copilot"
@@ -480,7 +637,7 @@ EOF
             jq '. + {
                 "github.copilot.advanced": {
                     "documentationAPI": {
-                        "endpoint": "http://localhost:3001",
+                        "endpoint": "http://localhost:3000",
                         "enabled": true
                     }
                 }
@@ -490,7 +647,7 @@ EOF
 {
     "github.copilot.advanced": {
         "documentationAPI": {
-            "endpoint": "http://localhost:3001",
+            "endpoint": "http://localhost:3000",
             "enabled": true
         }
     }
@@ -613,6 +770,281 @@ test_installation() {
     print_status "Installation tests completed"
 }
 
+# Configure VS Code extensions
+configure_vscode_extensions() {
+    print_header "Configuring VS Code Extensions"
+    
+    if [ "$SKIP_AI_SETUP" = true ]; then
+        print_info "Skipping VS Code extension setup"
+        return 0
+    fi
+    
+    # Find VS Code settings
+    local vscode_settings=""
+    local possible_dirs=(
+        "$HOME/.vscode/settings.json"
+        "$HOME/Library/Application Support/Code/User/settings.json"
+        "$HOME/.config/Code/User/settings.json"
+        "$HOME/AppData/Roaming/Code/User/settings.json"
+    )
+    
+    for settings_file in "${possible_dirs[@]}"; do
+        if [ -f "$settings_file" ]; then
+            vscode_settings="$settings_file"
+            break
+        fi
+    done
+    
+    # Create default settings if none found
+    if [ -z "$vscode_settings" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            vscode_settings="$HOME/Library/Application Support/Code/User/settings.json"
+        else
+            vscode_settings="$HOME/.config/Code/User/settings.json"
+        fi
+        mkdir -p "$(dirname "$vscode_settings")"
+    fi
+    
+    # Determine which server to use
+    local server_script="dist/server.js"
+    if [ -f "dist/modular-server.js" ]; then
+        server_script="dist/modular-server.js"
+    fi
+    
+    local current_path="$(pwd)"
+    
+    # Backup existing settings
+    if [ -f "$vscode_settings" ]; then
+        cp "$vscode_settings" "$vscode_settings.backup.$(date +%Y%m%d_%H%M%S)"
+    fi
+    
+    # Create or update settings with jq if available
+    if command_exists jq; then
+        local temp_config=$(mktemp)
+        
+        # Create MCP server configuration
+        cat > "$temp_config" << EOF
+{
+  "cline.mcpServers": {
+    "olympus-docs": {
+      "command": "node",
+      "args": ["$current_path/$server_script"],
+      "cwd": "$current_path",
+      "env": {
+        "MCP_CONFIG_PATH": "$current_path/config/config.json"
+      }
+    }
+  },
+  "continue.mcpServers": {
+    "olympus-docs": {
+      "command": "node",
+      "args": ["$current_path/$server_script"],
+      "cwd": "$current_path",
+      "env": {
+        "MCP_CONFIG_PATH": "$current_path/config/config.json"
+      }
+    }
+  }
+}
+EOF
+        
+        # Merge with existing settings
+        if [ -f "$vscode_settings" ]; then
+            jq -s '.[0] * .[1]' "$vscode_settings" "$temp_config" > "$vscode_settings.tmp"
+            mv "$vscode_settings.tmp" "$vscode_settings"
+        else
+            cp "$temp_config" "$vscode_settings"
+        fi
+        
+        rm "$temp_config"
+        print_status "VS Code extension configuration updated: $vscode_settings"
+    else
+        print_warning "jq not found - please manually configure Cline/Continue extensions"
+        print_info "Add the following to your VS Code settings.json:"
+        echo ""
+        echo "{"
+        echo "  \"cline.mcpServers\": {"
+        echo "    \"olympus-docs\": {"
+        echo "      \"command\": \"node\","
+        echo "      \"args\": [\"$current_path/$server_script\"],"
+        echo "      \"cwd\": \"$current_path\","
+        echo "      \"env\": {"
+        echo "        \"MCP_CONFIG_PATH\": \"$current_path/config/config.json\""
+        echo "      }"
+        echo "    }"
+        echo "  }"
+        echo "}"
+    fi
+}
+
+# Setup GitHub Copilot API integration
+setup_github_copilot_api() {
+    print_header "Setting Up GitHub Copilot API Integration"
+    
+    if [ "$SKIP_AI_SETUP" = true ]; then
+        print_info "Skipping GitHub Copilot API setup"
+        return 0
+    fi
+    
+    # Create API service configuration
+    cat > config/api-config.json << 'EOF'
+{
+  "server": {
+    "port": 3000,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "vscode://"]
+    }
+  },
+  "project": {
+    "name": "olympus-cloud-api",
+    "description": "API server for GitHub Copilot integration"
+  },
+  "repositories": [],
+  "mode": "api"
+}
+EOF
+    
+    # Load the config
+    cp config/api-config.json config/config.json
+    
+    print_info "Starting Olympus Docs API server for GitHub Copilot..."
+    
+    # Function to start API server in background
+    start_api_server() {
+        local log_file="logs/api-server.log"
+        mkdir -p logs
+        
+        echo "Starting API server at http://localhost:3000..."
+        nohup node dist/cli.js start --mode api > "$log_file" 2>&1 &
+        local api_pid=$!
+        echo $api_pid > .api-server.pid
+        
+        # Wait for server to start
+        local max_attempts=15
+        local attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+            if curl -s http://localhost:3000/health >/dev/null 2>&1; then
+                print_status "API server started successfully (PID: $api_pid)"
+                print_info "API server logs: tail -f $log_file"
+                return 0
+            fi
+            echo -n "."
+            sleep 2
+            ((attempt++))
+        done
+        
+        print_error "API server failed to start after ${max_attempts} attempts"
+        print_info "Check logs: cat $log_file"
+        return 1
+    }
+    
+    # Check if API server is already running
+    if curl -s http://localhost:3000/health >/dev/null 2>&1; then
+        print_status "API server is already running"
+    else
+        start_api_server
+    fi
+    
+    # Create systemd service for Linux/macOS
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        local service_dir="$HOME/.config/systemd/user"
+        mkdir -p "$service_dir"
+        
+        cat > "$service_dir/olympus-docs-api.service" << EOF
+[Unit]
+Description=Olympus Docs API for GitHub Copilot
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$(pwd)/start-api.sh
+Restart=on-failure
+Environment="OLYMPUS_DOCS_PORT=3001"
+WorkingDirectory=$(pwd)
+
+[Install]
+WantedBy=default.target
+EOF
+        
+        print_info "Systemd service created"
+        print_info "Enable service with: systemctl --user enable olympus-docs-api"
+        print_info "Start service with: systemctl --user start olympus-docs-api"
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        local service_dir="$HOME/Library/LaunchAgents"
+        mkdir -p "$service_dir"
+        
+        cat > "$service_dir/com.olympuscloud.docs-api.plist" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.olympuscloud.docs-api</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$(pwd)/start-api.sh</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>OLYMPUS_DOCS_PORT</key>
+        <string>3001</string>
+    </dict>
+    <key>WorkingDirectory</key>
+    <string>$(pwd)</string>
+</dict>
+</plist>
+EOF
+        
+        print_info "LaunchAgent created"
+        print_info "Load service with: launchctl load $service_dir/com.olympuscloud.docs-api.plist"
+    fi
+    
+    print_status "GitHub Copilot API configuration created"
+    print_info "Start API with: ./start-api.sh"
+    print_info "API endpoints will be available at http://localhost:3000"
+}
+
+# Test MCP server integration
+test_mcp_integration() {
+    print_header "Testing MCP Server Integration"
+    
+    # Determine which server to test
+    local server_script="dist/server.js"
+    if [ -f "dist/modular-server.js" ]; then
+        server_script="dist/modular-server.js"
+        print_info "Testing modular MCP server"
+    fi
+    
+    # Test MCP protocol
+    print_info "Testing MCP protocol communication..."
+    local test_json='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}}}'
+    
+    if timeout 10 bash -c "echo '$test_json' | node $server_script" >/dev/null 2>&1; then
+        print_status "MCP protocol test passed"
+    else
+        print_warning "MCP protocol test timed out or failed"
+    fi
+    
+    # Test tool listing
+    print_info "Testing tool listing..."
+    local tools_json='{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+    
+    if timeout 10 bash -c "echo '$tools_json' | node $server_script" >/dev/null 2>&1; then
+        print_status "Tool listing test passed"
+    else
+        print_warning "Tool listing test timed out or failed"
+    fi
+    
+    print_status "MCP integration tests completed"
+}
+
 # Show final instructions
 show_final_instructions() {
     print_header "🎉 Setup Complete!"
@@ -671,46 +1103,102 @@ show_final_instructions() {
 # Main setup flow
 main() {
     print_header "🚀 Olympus Cloud MCP Server Setup"
-    echo "This will set up comprehensive documentation access for:"
-    echo "  • Olympus Cloud platform and architecture"
-    echo "  • Azure services and best practices"
-    echo "  • .NET 9/10 and ASP.NET Core"
-    echo "  • Auto-configure Claude Code and GitHub Copilot"
+    echo "Enhanced setup for AI coding agents and Olympus Cloud development"
+    echo "This will configure:"
+    echo "  • Modular MCP Server with enhanced architecture"
+    echo "  • Claude Desktop integration"
+    echo "  • VS Code extensions (Cline, Continue)"
+    echo "  • GitHub Copilot API integration"
+    echo "  • Azure, .NET 9/10, and enterprise documentation"
     echo ""
     
     # Verify we're in the right directory
-    if [ ! -f "package.json" ] || ! grep -q "@olympuscloud/mcp-docs-server" package.json; then
-        print_error "This script must be run from the mcp-server-docs-lookup directory"
+    if [ ! -f "package.json" ]; then
+        print_error "package.json not found. This script must be run from the mcp-server-docs-lookup directory"
         exit 1
     fi
     
-    # Run setup steps
+    # Setup GitHub token if provided
+    if [ -n "$GITHUB_TOKEN" ]; then
+        export OLYMPUS_GITHUB_TOKEN="$GITHUB_TOKEN"
+        print_info "GitHub token configured for private repository access"
+    fi
+    
+    # Core setup steps
     check_prerequisites
     setup_mcp_server
     setup_qdrant
     create_olympus_config
     create_npm_scripts
     
-    # Configure AI assistants
-    configure_claude_code
-    configure_github_copilot
-    
-    # Sync documentation
-    sync_documentation
-    
-    # Start API server for Copilot
-    echo ""
-    read -p "Start API server for GitHub Copilot? (Y/n): " -n 1 -r
-    echo ""
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        start_api_server
+    # Documentation sync
+    if [ "$SKIP_SYNC" != true ]; then
+        echo ""
+        read -p "Would you like to sync documentation now? This will take 10-30 minutes (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            sync_documentation
+        else
+            print_info "Skipping documentation sync"
+            print_info "You can sync later with: node dist/cli.js sync"
+        fi
     fi
     
-    # Run tests
+    # Test core functionality
     test_installation
+    
+    # AI agent integrations
+    if [ "$SKIP_AI_SETUP" != true ]; then
+        print_header "Configuring AI Coding Agents"
+        configure_claude_code_enhanced
+        configure_vscode_extensions
+        setup_github_copilot_api
+        test_mcp_integration
+    fi
+    
+    # Start API server for Copilot
+    if [ "$SKIP_AI_SETUP" != true ]; then
+        echo ""
+        
+        if [ "$DEV_MODE" = true ]; then
+            # Auto-start in dev mode
+            print_info "Dev mode: Auto-starting API server..."
+            start_api_server
+        else
+            # Ask in normal mode
+            read -p "Start API server for GitHub Copilot? (Y/n): " -n 1 -r
+            echo ""
+            if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                start_api_server
+            fi
+        fi
+    fi
     
     # Show completion message
     show_final_instructions
+    
+    print_header "Setup Complete! 🎉"
+    print_status "Olympus Cloud Documentation MCP Server is ready for AI coding agents"
+    
+    # Show next steps
+    echo ""
+    echo -e "${GREEN}Next steps:${NC}"
+    echo -e "${GREEN}1. Restart Claude Desktop to load the MCP server${NC}"
+    echo -e "${GREEN}2. Install Cline or Continue extension in VS Code${NC}"
+    echo -e "${GREEN}3. Access the API server at http://localhost:3000/health${NC}"
+    echo -e "${GREEN}4. Test search: node dist/cli.js search \"Azure Functions best practices\"${NC}"
+    echo -e "${GREEN}5. Read integration guides in docs/ folder${NC}"
+    
+    if [ "$DEV_MODE" = true ]; then
+        echo ""
+        echo -e "${BLUE}Development mode features enabled:${NC}"
+        echo -e "${BLUE}  • Enhanced logging and debugging${NC}"
+        echo -e "${BLUE}  • Hot reload for configuration changes${NC}"
+        echo -e "${BLUE}  • Additional development tools${NC}"
+    fi
+    
+    echo ""
+    echo -e "${GREEN}Happy coding with enhanced AI documentation context! 🚀${NC}"
 }
 
 # Run main function

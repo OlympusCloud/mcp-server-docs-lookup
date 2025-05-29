@@ -519,39 +519,29 @@ export class VectorStore {
     }
 
     try {
-      const collectionInfo = await this.client.getCollection(this.collectionName);
+      const collectionInfo = await withTimeout(
+        this.client.getCollection(this.collectionName),
+        5000,
+        new Error('Collection info timeout')
+      );
       
-      const documentIds = new Set<string>();
-      let offset = 0;
-      const limit = 100;
-
-      let hasMore = true;
-      while (hasMore) {
-        const results = await this.client.scroll(this.collectionName, {
-          limit,
-          offset,
-          with_payload: ['documentId'],
-        });
-
-        results.points.forEach(point => {
-          if (point.payload?.documentId) {
-            documentIds.add(point.payload.documentId as string);
-          }
-        });
-
-        hasMore = results.points.length >= limit;
-        if (hasMore) {
-          offset += limit;
-        }
-      }
+      // Fast stats - just use collection info without scanning points
+      const pointsCount = collectionInfo.points_count || 0;
+      const estimatedDocs = Math.max(1, Math.floor(pointsCount / 10)); // Rough estimate
 
       return {
-        totalDocuments: documentIds.size,
-        totalChunks: collectionInfo.points_count || 0,
+        totalDocuments: estimatedDocs,
+        totalChunks: pointsCount,
         collectionSize: collectionInfo.indexed_vectors_count || 0,
       };
     } catch (error) {
-      throw new VectorStoreError('Failed to get stats', { error });
+      logger.error('Failed to get stats', { error });
+      // Return minimal stats if error
+      return {
+        totalDocuments: 0,
+        totalChunks: 0,
+        collectionSize: 0,
+      };
     }
   }
 

@@ -2,21 +2,32 @@
 
 A production-ready MCP (Model Context Protocol) server that provides intelligent documentation access for AI coding assistants. Seamlessly integrates with Claude Code and GitHub Copilot to provide context-aware assistance for the entire Olympus Cloud ecosystem or any documentation repository.
 
+## 📣 Major Update: Modular Architecture & Integrated API Server
+
+This version includes important improvements that enhance stability and expandability:
+
+- ✅ Modular server architecture for improved maintainability
+- ✅ Integrated API server for GitHub Copilot integration
+- ✅ Robust configuration system with presets for different workflows
+- ✅ Memory management optimizations to prevent process termination
+- ✅ Advanced error handling to maintain persistent connections
+
+If you previously experienced connection issues, please update to this version and see the [Troubleshooting Guide](./docs/TROUBLESHOOTING.md) for comprehensive solutions.
+
 ## 🚀 One-Command Setup
 
 ```bash
 # Olympus Cloud Setup (Recommended)
 ./setup-olympus.sh      # Linux/macOS
 .\setup-olympus.ps1    # Windows PowerShell
-
-# Or use the universal Node.js setup
-node setup.js           # Auto-detects Olympus context
 ```
 
 That's it! The setup will:
+
 - ✅ Install and configure everything automatically
 - ✅ Set up Claude Desktop integration
-- ✅ Configure GitHub Copilot with VS Code
+- ✅ Configure GitHub Copilot API integration
+- ✅ Set up VS Code extensions (Cline, Continue)
 - ✅ Index all Olympus Cloud repositories
 - ✅ Create AI-friendly search commands
 

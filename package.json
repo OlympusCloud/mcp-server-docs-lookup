@@ -1,27 +1,18 @@
 {
   "name": "@olympuscloud/mcp-docs-server",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Universal documentation MCP server for AI coding assistants (Claude Code & GitHub Copilot) with Olympus Cloud integration",
   "main": "dist/server.js",
   "bin": {
     "olympus-mcp": "dist/cli.js",
-    "olympus-mcp-setup": "setup.js",
-    "olympus-ai": "olympus-ai.js"
+    "olympus-mcp-wrapper": "dist/mcp-server-wrapper.js"
   },
   "files": [
     "dist/",
     "config/config.example.json",
     "config/schema.json",
     "config/presets/",
-    "setup.js",
-    "setup-general.js",
-    "setup-olympus.js",
-    "olympus-ai.js",
-    "index-olympus.js",
-    "mcp-launcher.js",
     "README.md",
-    "OLYMPUS_QUICKSTART.md",
-    "VSCODE_INTEGRATION.md",
     "LICENSE"
   ],
   "engines": {
@@ -40,20 +31,13 @@
     "access": "restricted"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/mcp-server-wrapper.js dist/mcp-stdio.js",
     "start": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' node dist/server.js --stdio",
     "dev": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' tsx watch src/server.ts --stdio",
-    "setup": "./setup-olympus.sh",
-    "setup:olympus": "node setup-olympus.js",
-    "setup:general": "node setup-general.js",
-    "start:olympus": "npm run api:start",
-    "index:olympus": "node index-olympus.js",
-    "ai": "node olympus-ai.js",
-    "api:start": "node dist/api-server.js",
-    "api:dev": "nodemon --watch src --exec 'npm run build && npm run api:start'",
-    "mcp:start": "node dist/cli.js start",
-    "test:integration": "node test-copilot.js",
-    "doctor": "node setup.js --check",
+    "modular": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' node dist/modular-server.js",
+    "dev:modular": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' tsx watch src/modular-server.ts",
+    "enhanced": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' node dist/enhanced-server.js --stdio",
+    "dev:enhanced": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' tsx watch src/enhanced-server.ts --stdio",
     "cli": "NODE_OPTIONS='--max-old-space-size=2048 --expose-gc' node dist/cli.js",
     "mcp": "NODE_OPTIONS='--max-old-space-size=4096 --expose-gc' node dist/mcp-stdio.js",
     "test": "jest",
@@ -64,7 +48,8 @@
     "search": "node dist/cli.js search",
     "server": "node dist/server.js --stdio",
     "api": "node dist/cli.js start --mode api --port 3001",
-    "status": "node dist/cli.js status"
+    "status": "node dist/cli.js status",
+    "setup": "./setup-olympus.sh"
   },
   "keywords": [
     "mcp",

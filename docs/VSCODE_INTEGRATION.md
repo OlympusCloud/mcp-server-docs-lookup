@@ -28,8 +28,8 @@ Add to your VS Code `settings.json`:
     "olympus-docs": {
       "type": "mcp",
       "config": {
-        "command": "olympus-mcp",
-        "args": ["start", "--stdio"],
+        "command": "node",
+        "args": ["${workspaceFolder}/node_modules/@olympuscloud/mcp-docs-server/mcp-launcher.js", "--stdio"],
         "env": {
           "NODE_OPTIONS": "--max-old-space-size=4096 --expose-gc",
           "MCP_MODE": "true"
