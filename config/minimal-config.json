@@ -1,0 +1,30 @@
+{
+  "project": {
+    "name": "olympus-cloud-mcp-server",
+    "description": "MCP Server for AI coding assistants",
+    "version": "1.1.1"
+  },
+  "repositories": [],
+  "embedding": {
+    "provider": "transformers",
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "dimensions": 384
+  },
+  "vectorStore": {
+    "provider": "qdrant",
+    "url": "http://localhost:6333",
+    "collection": "documentation"
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/mcp-server.log"
+  },
+  "server": {
+    "port": 3001,
+    "host": "localhost",
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:*", "vscode://*"]
+    }
+  }
+}

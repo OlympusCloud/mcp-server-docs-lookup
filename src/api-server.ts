@@ -279,7 +279,7 @@ export class APIServer {
     await this.initialize();
     
     const config = this.configLoader.getConfig();
-    const port = config.server?.port || 3000;
+    const port = parseInt(process.env.PORT || '') || config.server?.port || 3000;
     const host = config.server?.host || 'localhost';
 
     this.server = http.createServer(this.app);
