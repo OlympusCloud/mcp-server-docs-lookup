@@ -10,6 +10,7 @@ import { VectorStore } from './services/vector-store';
 import { EmbeddingService, EmbeddingProvider } from './services/embedding';
 import { ContextGenerator } from './services/context-generator';
 import { DocumentProcessor } from './services/document-processor';
+import { UnifiedServer, ServerMode, UnifiedServerConfig } from './unified-server';
 // import logger from './utils/logger';
 
 const program = new Command();
@@ -398,63 +399,48 @@ program
 
 program
   .command('start')
-  .description('Start the MCP server')
+  .description('Start the unified server')
   .option('-s, --stdio', 'Run in stdio mode for MCP protocol', false)
-  .option('-m, --mode <mode>', 'Server mode (mcp, api)', 'mcp')
-  .option('-p, --port <port>', 'API server port')
+  .option('-m, --mode <mode>', 'Server mode (mcp, api, enhanced, websocket)', 'mcp')
+  .option('-p, --port <port>', 'Server port', '3000')
+  .option('--enable-websocket', 'Enable WebSocket support', false)
+  .option('--enable-metrics', 'Enable metrics endpoint', false)
+  .option('--max-memory <mb>', 'Maximum memory usage in MB', '2048')
   .action(async (options: any) => {
     try {
-      const mode = options.mode;
+      const serverConfig: UnifiedServerConfig = {
+        mode: options.mode as ServerMode,
+        port: parseInt(options.port),
+        enableWebSocket: options.enableWebsocket,
+        enableMetrics: options.enableMetrics,
+        maxMemory: parseInt(options.maxMemory),
+        debug: process.env.NODE_ENV === 'development'
+      };
 
-      if (mode === 'mcp') {
-        if (options.stdio) {
-          // Run directly in stdio mode
-          const { MCPServer } = await import('./server');
-          const server = new MCPServer();
-          
-          process.on('SIGINT', async () => {
-            await server.stop();
-            process.exit(0);
-          });
+      console.log(`🚀 Starting unified server in ${serverConfig.mode} mode...`);
+      
+      const server = new UnifiedServer(serverConfig);
+      
+      process.on('SIGINT', async () => {
+        console.log('\n📡 Received SIGINT, shutting down gracefully...');
+        await server.stop();
+        process.exit(0);
+      });
 
-          process.on('SIGTERM', async () => {
-            await server.stop();
-            process.exit(0);
-          });
+      process.on('SIGTERM', async () => {
+        console.log('\n📡 Received SIGTERM, shutting down gracefully...');
+        await server.stop();
+        process.exit(0);
+      });
 
-          await server.start();
-        } else {
-          console.log('🚀 Starting MCP server...');
-          const mcpProcess = spawn('node', ['--expose-gc', '--max-old-space-size=4096', path.join(__dirname, 'server.js'), '--stdio'], {
-            stdio: 'inherit',
-            env: {
-              ...process.env,
-              MCP_MODE: 'true'
-            }
-          });
-
-          mcpProcess.on('error', (error) => {
-            console.error('❌ Failed to start MCP server:', error);
-            process.exit(1);
-          });
-        }
+      await server.start();
+      
+      if (serverConfig.mode === 'api' || serverConfig.mode === 'websocket') {
+        console.log(`✅ Server running on port ${serverConfig.port}`);
+      } else {
+        console.log('✅ MCP server ready for connections');
       }
-
-      if (mode === 'api') {
-        console.log('🚀 Starting API server...');
-        const apiProcess = spawn('node', [path.join(__dirname, 'api-server.js')], {
-          stdio: 'inherit',
-          env: {
-            ...process.env,
-            PORT: options.port || process.env.PORT
-          }
-        });
-
-        apiProcess.on('error', (error) => {
-          console.error('❌ Failed to start API server:', error);
-          process.exit(1);
-        });
-      }
+      
     } catch (error) {
       console.error('❌ Failed to start server:', error);
       process.exit(1);

@@ -1,301 +1,95 @@
 {
   "project": {
-    "name": "olympus-cloud-production",
-    "description": "Olympus Cloud production documentation with Azure, .NET, and best practices",
-    "version": "1.0.0"
+    "name": "olympus-cloud-knowledge",
+    "description": "Olympus Cloud platform documentation and knowledge base"
   },
   "repositories": [
     {
       "name": "olympus-docs",
       "url": "https://github.com/OlympusCloud/olympus-docs.git",
-      "branch": "ai_coding",
-      "authType": "token",
-      "credentials": {
-        "token": "ghp_YOUR_GITHUB_TOKEN_HERE"
-      },
-      "paths": [
-        "/docs",
-        "/guides",
-        "/api",
-        "/architecture",
-        "/deployment",
-        "/configuration"
-      ],
-      "exclude": [
-        "*/node_modules/*",
-        "*/dist/*",
-        "*/build/*",
-        "*.png",
-        "*.jpg",
-        "*.gif"
-      ],
-      "syncInterval": 30,
+      "branch": "main",
+      "paths": ["/"],
+      "exclude": ["node_modules", ".git", "dist", "build"],
       "priority": "high",
-      "category": "olympus-cloud",
-      "tags": ["olympus", "cloud", "platform", "api", "documentation"]
+      "category": "documentation",
+      "syncInterval": 3600,
+      "authType": "none"
     },
     {
-      "name": "dotnet-docs",
-      "url": "https://github.com/dotnet/docs.git",
+      "name": "kubernetes-docs",
+      "url": "https://github.com/kubernetes/website.git",
       "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/docs/core",
-        "/docs/fundamentals", 
-        "/docs/architecture",
-        "/docs/csharp",
-        "/docs/framework"
-      ],
-      "exclude": [
-        "*/samples/*",
-        "*/includes/*",
-        "*/media/*",
-        "*.png",
-        "*.jpg",
-        "*.gif"
-      ],
-      "syncInterval": 120,
-      "priority": "high",
-      "category": "dotnet",
-      "metadata": {
-        "framework": "dotnet",
-        "type": "official-docs",
-        "version": "9-10",
-        "platform": "olympus"
-      }
-    },
-    {
-      "name": "azure-docs",
-      "url": "https://github.com/MicrosoftDocs/azure-docs.git",
-      "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/articles/architecture",
-        "/articles/azure-functions",
-        "/articles/app-service",
-        "/articles/container-instances",
-        "/articles/storage",
-        "/articles/security",
-        "/articles/active-directory",
-        "/articles/key-vault",
-        "/articles/monitor"
-      ],
-      "exclude": [
-        "*/media/*",
-        "*/includes/*",
-        "*.png",
-        "*.jpg",
-        "*.gif",
-        "*/samples/*"
-      ],
-      "syncInterval": 180,
-      "priority": "high",
-      "category": "azure",
-      "metadata": {
-        "platform": "azure",
-        "type": "official-docs",
-        "focus": "cloud-architecture"
-      }
-    },
-    {
-      "name": "azure-sdk-net",
-      "url": "https://github.com/Azure/azure-sdk-for-net.git",
-      "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/doc",
-        "/samples"
-      ],
-      "exclude": [
-        "*/bin/*",
-        "*/obj/*",
-        "*/target/*",
-        "*/node_modules/*",
-        "*.dll",
-        "*.exe",
-        "*.nupkg",
-        "*/media/*",
-        "*.png",
-        "*.jpg"
-      ],
-      "syncInterval": 240,
-      "priority": "high",
-      "category": "azure-sdk",
-      "metadata": {
-        "platform": "azure",
-        "type": "sdk-docs",
-        "version": "9-10"
-      }
-    },
-    {
-      "name": "azure-architecture-center",
-      "url": "https://github.com/MicrosoftDocs/architecture-center.git",
-      "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/docs/patterns",
-        "/docs/best-practices",
-        "/docs/reference-architectures",
-        "/docs/solution-ideas",
-        "/docs/microservices"
-      ],
-      "exclude": [
-        "*/media/*",
-        "*/includes/*",
-        "*.png",
-        "*.jpg",
-        "*.gif"
-      ],
-      "syncInterval": 240,
-      "priority": "high",
-      "category": "architecture",
-      "metadata": {
-        "type": "architecture-patterns",
-        "platform": "azure",
-        "focus": "cloud-native"
-      }
-    },
-    {
-      "name": "dotnet-api-docs",
-      "url": "https://github.com/dotnet/dotnet-api-docs.git",
-      "branch": "main",
-      "authType": "none", 
-      "paths": [
-        "/xml/System",
-        "/xml/Microsoft.Extensions",
-        "/xml/Microsoft.AspNetCore"
-      ],
-      "exclude": [
-        "*/legacy/*",
-        "*/netframework/*"
-      ],
-      "syncInterval": 180,
+      "paths": ["/content/en/docs"],
+      "exclude": ["node_modules", ".git", "static", "assets"],
       "priority": "medium",
-      "category": "api-reference",
+      "category": "infrastructure",
+      "syncInterval": 86400,
+      "authType": "none",
       "metadata": {
-        "type": "api-documentation",
-        "framework": "dotnet",
-        "version": "9-10"
+        "type": "kubernetes",
+        "relevance": "Olympus uses Kubernetes for orchestration"
       }
     },
     {
-      "name": "azure-well-architected",
-      "url": "https://github.com/MicrosoftDocs/well-architected.git",
+      "name": "helm-docs",
+      "url": "https://github.com/helm/helm-www.git",
       "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/well-architected",
-        "/framework"
-      ],
-      "exclude": [
-        "*/media/*",
-        "*/includes/*",
-        "*.png",
-        "*.jpg"
-      ],
-      "syncInterval": 240,
-      "priority": "high",
-      "category": "best-practices",
-      "metadata": {
-        "type": "architectural-guidance",
-        "platform": "azure",
-        "focus": "well-architected-framework"
-      }
-    },
-    {
-      "name": "enterprise-patterns",
-      "url": "https://github.com/dotnet-architecture/eShopOnContainers.git",
-      "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/docs",
-        "/wiki"
-      ],
-      "exclude": [
-        "/src/*",
-        "*/img/*",
-        "*.png",
-        "*.jpg"
-      ],
-      "syncInterval": 360,
+      "paths": ["/content/en/docs"],
+      "exclude": ["node_modules", ".git", "themes"],
       "priority": "medium",
-      "category": "patterns",
+      "category": "deployment",
+      "syncInterval": 86400,
+      "authType": "none",
       "metadata": {
-        "type": "microservices-patterns",
-        "framework": "dotnet",
-        "focus": "enterprise-architecture"
+        "type": "helm",
+        "relevance": "Helm charts for Olympus deployments"
       }
     },
     {
-      "name": "cloud-adoption-framework",
-      "url": "https://github.com/MicrosoftDocs/cloud-adoption-framework.git",
+      "name": "prometheus-docs",
+      "url": "https://github.com/prometheus/docs.git",
       "branch": "main",
-      "authType": "none",
-      "paths": [
-        "/docs/strategy",
-        "/docs/plan", 
-        "/docs/ready",
-        "/docs/adopt",
-        "/docs/govern",
-        "/docs/manage"
-      ],
-      "exclude": [
-        "*/media/*",
-        "*/includes/*",
-        "*.png",
-        "*.jpg"
-      ],
-      "syncInterval": 360,
+      "paths": ["/content/docs"],
+      "exclude": ["node_modules", ".git"],
       "priority": "medium",
-      "category": "governance",
+      "category": "monitoring",
+      "syncInterval": 86400,
+      "authType": "none",
       "metadata": {
-        "type": "cloud-adoption",
-        "platform": "azure",
-        "focus": "enterprise-governance"
+        "type": "monitoring",
+        "relevance": "Prometheus for Olympus monitoring"
       }
     },
     {
-      "name": "security-benchmark",
-      "url": "https://github.com/MicrosoftDocs/SecurityBenchmarks.git",
-      "branch": "main", 
+      "name": "terraform-docs",
+      "url": "https://github.com/hashicorp/terraform-website.git",
+      "branch": "main",
+      "paths": ["/content/docs"],
+      "exclude": ["node_modules", ".git", "public"],
+      "priority": "medium",
+      "category": "infrastructure",
+      "syncInterval": 86400,
       "authType": "none",
-      "paths": [
-        "/Azure",
-        "/benchmarks"
-      ],
-      "exclude": [
-        "*/media/*",
-        "*.png",
-        "*.jpg"
-      ],
-      "syncInterval": 480,
-      "priority": "high",
-      "category": "security",
       "metadata": {
-        "type": "security-benchmarks",
-        "platform": "azure",
-        "focus": "security-compliance"
+        "type": "iac",
+        "relevance": "Infrastructure as Code for Olympus"
       }
     }
   ],
   "contextGeneration": {
     "strategies": ["hybrid"],
-    "maxChunks": 25,
+    "maxChunks": 30,
     "priorityWeighting": {
       "high": 2.0,
       "medium": 1.0,
       "low": 0.5
-    },
-    "categoryWeighting": {
-      "dotnet": 1.8,
-      "azure": 1.8,
-      "aspnet": 1.7,
-      "architecture": 1.6,
-      "security": 1.9,
-      "best-practices": 1.5,
-      "api-reference": 1.2,
-      "patterns": 1.4,
-      "governance": 1.3
+    }
+  },
+  "vectorStore": {
+    "type": "qdrant",
+    "qdrant": {
+      "url": "http://localhost:6333",
+      "collectionName": "olympus_knowledge"
     }
   },
   "server": {
@@ -303,34 +97,7 @@
     "host": "localhost",
     "cors": {
       "enabled": true,
-      "origins": ["http://localhost:*", "https://olympus-cloud.com"]
+      "origins": ["http://localhost:*"]
     }
-  },
-  "vectorStore": {
-    "type": "qdrant",
-    "qdrant": {
-      "url": "http://localhost:6333",
-      "collectionName": "olympus_production_docs",
-      "vectorSize": 384,
-      "distance": "Cosine"
-    }
-  },
-  "embedding": {
-    "provider": "local",
-    "model": "Xenova/all-MiniLM-L6-v2",
-    "chunkSize": 2000,
-    "chunkOverlap": 300
-  },
-  "security": {
-    "enableInputSanitization": true,
-    "enableRateLimiting": true,
-    "rateLimitRequests": 100,
-    "rateLimitWindow": 60000,
-    "enablePIIRedaction": true
-  },
-  "monitoring": {
-    "enableMetrics": true,
-    "enablePerformanceTracking": true,
-    "logLevel": "info"
   }
 }

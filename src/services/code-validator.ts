@@ -2,7 +2,6 @@ import { DocumentChunk } from '../types/document';
 import * as ts from 'typescript';
 import { ESLint } from 'eslint';
 import Ajv from 'ajv';
-import { parse as parseGraphQL } from 'graphql';
 import logger from '../utils/logger';
 
 export interface ValidationResult {
@@ -222,13 +221,22 @@ export class CodeValidator {
       }
       
       case 'graphql': {
+        // Basic GraphQL validation - check for common patterns
         try {
-          parseGraphQL(code);
+          if (!code.trim().match(/^(query|mutation|subscription|fragment|schema|type|input|enum|union|interface|directive)\s/)) {
+            errors.push({
+              line: 1,
+              column: 1,
+              message: 'GraphQL code should start with a valid definition (query, mutation, type, etc.)',
+              rule: 'graphql-definition',
+              severity: 'error',
+            });
+          }
         } catch (error) {
           errors.push({
             line: 0,
             column: 0,
-            message: `GraphQL syntax error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            message: `GraphQL validation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
             rule: 'graphql-syntax',
             severity: 'error',
           });

@@ -18,27 +18,8 @@ services:
       retries: 3
       start_period: 40s
 
-  mcp-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    depends_on:
-      qdrant:
-        condition: service_healthy
-    volumes:
-      - ./config:/app/config
-      - ./data:/app/data
-      - ./logs:/app/logs
-    environment:
-      - NODE_ENV=production
-      - LOG_LEVEL=info
-      - QDRANT_URL=http://qdrant:6333
-    command: ["node", "dist/server.js"]
-    stdin_open: true
-    tty: true
-
-  api-server:
+  # Unified server that can run in different modes
+  docs-server:
     build:
       context: .
       dockerfile: Dockerfile
@@ -47,22 +28,51 @@ services:
       qdrant:
         condition: service_healthy
     ports:
-      - "3000:3000"
+      - "${SERVER_PORT:-3000}:${SERVER_PORT:-3000}"
     volumes:
-      - ./config:/app/config
+      - ./config:/app/config:ro
       - ./data:/app/data
       - ./logs:/app/logs
+      - qdrant_storage:/app/qdrant_storage
     environment:
-      - NODE_ENV=production
-      - LOG_LEVEL=info
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
       - QDRANT_URL=http://qdrant:6333
-    command: ["node", "dist/api-server.js"]
+      - PORT=${SERVER_PORT:-3000}
+      - SERVER_MODE=${SERVER_MODE:-api}
+      - ENABLE_WEBSOCKET=${ENABLE_WEBSOCKET:-false}
+      - ENABLE_METRICS=${ENABLE_METRICS:-true}
+      - MAX_MEMORY=${MAX_MEMORY:-2048}
+    command: ["node", "dist/cli.js", "start", "--mode", "${SERVER_MODE:-api}", "--port", "${SERVER_PORT:-3000}"]
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-3000}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Optional: MCP server for stdio mode (useful for development)
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - QDRANT_URL=http://qdrant:6333
+    command: ["node", "dist/cli.js", "start", "--mode", "mcp"]
+    stdin_open: true
+    tty: true
+    profiles:
+      - mcp  # Only start when explicitly requested
 
 volumes:
   qdrant_storage:

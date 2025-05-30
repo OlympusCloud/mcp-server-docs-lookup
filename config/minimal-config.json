@@ -6,7 +6,7 @@
   },
   "repositories": [],
   "embedding": {
-    "provider": "transformers",
+    "provider": "local",
     "model": "Xenova/all-MiniLM-L6-v2",
     "dimensions": 384
   },

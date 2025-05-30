@@ -278,6 +278,7 @@ EOF
         "token": "$GITHUB_TOKEN"
       },
       "paths": [
+        "/",
         "/docs",
         "/guides",
         "/api",
